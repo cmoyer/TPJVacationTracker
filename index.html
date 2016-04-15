@@ -1,19 +1,67 @@
 <!DOCTYPE html>
-<html ng-app="main">
+<html>
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Vacation Tracker</title>
-    <link href="../bootstrap/css/bootstrap.css" rel="stylesheet">
-    <link href="../bootstrap/css/bootstrap-theme.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/select2/3.4.5/select2.css">
-    <link rel="stylesheet" href="css/select.css">
 
-    <!-- Our stylesheets -->
-    <link rel="stylesheet" href="css/style.css">
+    <!--Frameworks-->
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <link href="css/bootstrap-theme.min.css" rel="stylesheet">
+    <link href="//cdnjs.cloudflare.com/ajax/libs/select2/3.4.5/select2.css" rel="stylesheet">
+
+    <!--Our Stylesheets-->
+    <link href="css/style.css" rel="stylesheet">
+    <link href="css/select.css" rel="stylesheet">
 </head>
 
 <body>
+
+
+    <nav class="navbar navbar-default navbar-fixed-top first-navbar">
+        <div class="container">
+            <div class="navbar-header">
+               <img src="images/logoBanner.png"/>
+            </div>
+
+            <!--User button-->
+            <div id="navbar1" class="hidden-xs">
+                <ul class="nav navbar-nav applayout-links navbar-right">
+                    <li class="dropdown test-dropdown">
+                        <a href="#" id="userButton" class="dropdown-toggle" data-toggle="dropdown"
+                           aria-haspopup="true" aria-expanded="false">
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li class="">
+                                <a id="" href="#" ng-click="logoutUser()">
+                                    Log out
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <nav class="navbar navbar-default navbar-fixed-top second-navbar" ng-show="true">
+        <div class="container">
+            <div class="navbar-header">
+                <div class="pageTitle">
+                    Vacation Tracker
+                </div>
+            </div>
+
+            <!--User button-->
+
+        </div>
+    </nav>
+
+
+
+    <!--Bootstrap-->
+    <script src="js/bootstrap.min.js"></script>
 
 </body>
 </html>
