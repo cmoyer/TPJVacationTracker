@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Vacation Tracker</title>
+
+    <!--Frameworks-->
+    <link href="bootstrap/css/bootstrap.css" rel="stylesheet">
+    <link href="bootstrap/css/bootstrap-theme.min.css" rel="stylesheet">
+    <link href="//cdnjs.cloudflare.com/ajax/libs/select2/3.4.5/select2.css" rel="stylesheet">
+
+    <!--Our Stylesheets-->
+    <link href="css/style.css" rel="stylesheet">
+    <link href="css/select.css" rel="stylesheet">
+</head>
+
+<body>
+
+
+<nav class="navbar navbar-default navbar-fixed-top first-navbar">
+    <div class="container">
+        <div class="navbar-header">
+            <img src="images/vtBanner.jpg"/>
+        </div>
+
+
+        <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+                       aria-expanded="false">My Requests <span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li class="active"><a href="MyRequests.html">My Requests by Date</a></li>
+                        <li><a href="MyGroupCalendar.html">My Group's Calendar</a></li>
+                    </ul>
+                </li>
+
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+                       aria-expanded="false">My Approvals <span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="MyApprovals.html">My Approvals</a></li>
+                        <li><a href="ApproverCalendar.html">Calendar View</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div><!--/.nav-collapse -->
+    </div>
+</nav>
+
+<!--User button-->
+<div id="navbar1" class="hidden-xs">
+    <ul class="nav navbar-nav applayout-links navbar-right">
+
+        <li class="dropdown test-dropdown">
+            <a href="#" id="userButton" class="dropdown-toggle" data-toggle="dropdown"
+               aria-haspopup="true" aria-expanded="false">
+            </a>
+            <ul class="dropdown-menu">
+                <li class="">
+                    <a id="" href="#" ng-click="logoutUser()">
+                        Log out
+                    </a>
+                </li>
+            </ul>
+        </li>
+    </ul>
+</div>
+</div>
+</nav>
+
+<nav class="navbar navbar-default navbar-fixed-top second-navbar" ng-show="true">
+    <div class="container">
+        <div class="navbar-header">
+            <div class="pageTitle">
+                My Vacation Requests
+            </div>
+        </div>
+
+        <!--User button-->
+
+    </div>
+</nav>
+
+
+
+<!-- Bootstrap core JavaScript
+ ================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')</script>
+<script src="bootstrap/js/bootstrap.min.js"></script>
+
+
+</body>
+</html>
