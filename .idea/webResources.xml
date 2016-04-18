@@ -9,10 +9,10 @@
             <path value="file://$PROJECT_DIR$/bootstrap" />
             <path value="file://$PROJECT_DIR$/css" />
             <path value="file://$PROJECT_DIR$/js" />
-            <path value="file://$PROJECT_DIR$/img" />
             <path value="file://$PROJECT_DIR$/select2" />
             <path value="file://$PROJECT_DIR$/partials" />
             <path value="file://$PROJECT_DIR$/images" />
+            <path value="file://$PROJECT_DIR$/FullCalendar" />
           </resourceRoots>
         </entryData>
       </entry>

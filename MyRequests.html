@@ -16,7 +16,7 @@
     <link href="css/select.css" rel="stylesheet">
 </head>
 
-<body>
+<body ng-controller="mainCtrl">
 
 
 <nav class="navbar navbar-default navbar-fixed-top first-navbar">
@@ -69,8 +69,7 @@
         </li>
     </ul>
 </div>
-</div>
-</nav>
+
 
 <nav class="navbar navbar-default navbar-fixed-top second-navbar" ng-show="true">
     <div class="container">
@@ -79,10 +78,9 @@
                 My Vacation Requests
             </div>
         </div>
-
-        <!--User button-->
-
     </div>
+    <!-- action buttons -->
+    <div id="actionButtons" class="navbar-collapse collapse" ng-include="partials/actions.html"></div>
 </nav>
 
 
