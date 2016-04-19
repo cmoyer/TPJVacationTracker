@@ -83,32 +83,31 @@
 
 
 <nav class="navbar navbar-default navbar-fixed-top first-navbar">
-    <div class="container">
+    <div id="navLinksContainer" class="container-fluid">
         <div class="navbar-header">
             <img src="images/vtBanner.jpg"/>
         </div>
 
 
-        <div  class="navbar-collapse collapse">
-            <ul id="navbarLinks" class="nav navbar-nav">
+        <div id="navbarLinks" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+                           aria-expanded="false">My Requests <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="MyRequests.html">My Requests by Date</a></li>
+                            <li><a href="MyGroupCalendar.html">My Group's Calendar</a></li>
+                        </ul>
+                    </li>
 
-                <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
-                       aria-expanded="false">My Requests <span class="caret"></span></a>
-                    <ul class="dropdown-menu">
-                        <li><a href="MyRequests.html">My Requests by Date</a></li>
-                        <li><a href="MyGroupCalendar.html">My Group's Calendar</a></li>
-                    </ul>
-                </li>
-
-                <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
-                       aria-expanded="false">My Approvals <span class="caret"></span></a>
-                    <ul class="dropdown-menu">
-                        <li><a href="MyApprovals.html">My Approvals</a></li>
-                        <li><a href="ApproverCalendar.html">Calendar View</a></li>
-                    </ul>
-                </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+                           aria-expanded="false">My Approvals <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="MyApprovals.html">My Approvals</a></li>
+                            <li><a href="ApproverCalendar.html">Calendar View</a></li>
+                        </ul>
+                    </li>
             </ul>
         </div><!--/.nav-collapse -->
     </div>
@@ -136,7 +135,7 @@
 </nav>
 
 <nav class="navbar navbar-default navbar-fixed-top second-navbar" ng-show="true">
-    <div class="container">
+    <div id="actionLinksContainer" class="container-fluid">
         <div class="navbar-header">
             <div class="pageTitle">
                 <h4>Vacation Request</h4>
@@ -149,17 +148,17 @@
 </nav>
 
 <!--Our main form area-->
-<div class="container">
+<div id="formBody" class="container-fluid">
     <!--Row containing calendar and day selectors-->
     <div class="row">
 
         <!--Our Calendar-->
-        <div class="col-md-8">
+        <div class="col-md-6">
             <div id='calendar'></div>
         </div>
 
         <!--The Full/half day selections-->
-        <div class="col-md-4">
+        <div class="col-md-6">
             <h4>Dates Selected</h4>
             <hr/>
         </div>
