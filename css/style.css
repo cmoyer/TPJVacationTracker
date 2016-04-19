@@ -274,9 +274,11 @@ select[disabled] {
 /* Header, Footer, and Navbar */
 /*---------------------------------------------*/
 
-#navbarLinks ul{
+#navbarLinks ul.nav.navbar-nav{
     padding-left: 18%;
 }
+
+
 
 .navbar {
     margin-bottom: 0px;
