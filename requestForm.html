@@ -1,9 +1,13 @@
 <!DOCTYPE html>
-<html>
+<html ng-app="main">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <link rel="apple-touch-icon" sizes="144x144" href="images/ipad-retina.png" />
+    <link rel="apple-touch-icon" sizes="114x114" href="images/iphone-retina.png" />
+    <link rel="apple-touch-icon" sizes="72x72" href="images/ipad.png" />
+    <link rel="apple-touch-icon" href="images/iphone.png" />
     <title>Vacation Tracker</title>
 
     <!--Frameworks-->
@@ -50,7 +54,7 @@
                     console.log(end.format());
 
                     //we need to gather all of the days that aren't weekends and store them in an array
-                    var dateArray = new Array();
+                    var dateArray;
                     var startDate = new Date(start.format());
                     var endDate = new Date(end.format());
                     startDate.setDate(startDate.getDate()+1);
@@ -79,60 +83,52 @@
 
 </head>
 
-<body>
+<body ng-controller="mainCtrl" class="ng-cloak">
 
 
-<nav class="navbar navbar-default navbar-fixed-top first-navbar">
-    <div id="navLinksContainer" class="container-fluid">
-        <div class="navbar-header">
-            <img src="images/vtBanner.jpg"/>
-        </div>
+<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container-fluid">
 
 
-        <div id="navbarLinks" class="navbar-collapse collapse">
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav">
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
-                           aria-expanded="false">My Requests <span class="caret"></span></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="MyRequests.html">My Requests by Date</a></li>
-                            <li><a href="MyGroupCalendar.html">My Group's Calendar</a></li>
-                        </ul>
-                    </li>
+                <li class="pull-left"><img src="images/vtBanner.jpg"/></li>
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+                       aria-expanded="false">My Requests <span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="MyRequests.html">My Requests by Date</a></li>
+                        <li><a href="MyGroupCalendar.html">My Group's Calendar</a></li>
+                    </ul>
+                </li>
 
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
-                           aria-expanded="false">My Approvals <span class="caret"></span></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="MyApprovals.html">My Approvals</a></li>
-                            <li><a href="ApproverCalendar.html">Calendar View</a></li>
-                        </ul>
-                    </li>
-            </ul>
-        </div><!--/.nav-collapse -->
-    </div>
-</nav>
-
-<!--User button-->
-<div id="navbar" class="hidden-xs">
-    <ul class="nav navbar-nav applayout-links navbar-right">
-
-        <li class="dropdown test-dropdown">
-            <a href="#" id="userButton" class="dropdown-toggle" data-toggle="dropdown"
-               aria-haspopup="true" aria-expanded="false">
-            </a>
-            <ul class="dropdown-menu">
-                <li class="">
-                    <a id="" href="#" ng-click="logoutUser()">
-                        Log out
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+                       aria-expanded="false">My Approvals <span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="MyApprovals.html">My Approvals</a></li>
+                        <li class="active"><a href="ApproverCalendar.html">Calendar View</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown test-dropdown pull-right">
+                    <a href="#" id="userButton" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <span class="glyphicon glyphicon-user" aria-hidden="true"></span> <span
+                            ng-bind="user.username">&nbsp;&nbsp;</span><span class="caret"></span>
                     </a>
+                    <ul class="dropdown-menu">
+                        <li class="">
+                            <a id="" href="#" ng-click="logoutUser()">
+                                Log out
+                            </a>
+                        </li>
+                    </ul>
                 </li>
             </ul>
-        </li>
-    </ul>
-</div>
-</div>
+        </div><!-- /.navbar-collapse -->
+    </div><!-- /.container-fluid -->
 </nav>
+
 
 <nav class="navbar navbar-default navbar-fixed-top second-navbar" ng-show="true">
     <div id="actionLinksContainer" class="container-fluid">
@@ -142,7 +138,7 @@
             </div>
         </div>
 
-        <!--User button-->
+
 
     </div>
 </nav>
@@ -202,6 +198,17 @@
 
 </div>
 
+
+<div id="notAvailableMask" class="hidden-lg hidden-md hidden-sm">
+    <div id="notAvailableContent">
+        <p>
+            This application has not been optimized for use on small devices.
+        </p>
+        <p>
+            Please open it using an iPad or desktop browser.
+        </p>
+    </div>
+</div>
 
 
 <!-- Bootstrap core JavaScript

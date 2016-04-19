@@ -13,6 +13,7 @@
             <path value="file://$PROJECT_DIR$/partials" />
             <path value="file://$PROJECT_DIR$/images" />
             <path value="file://$PROJECT_DIR$/FullCalendar" />
+            <path value="file://$PROJECT_DIR$/fonts" />
           </resourceRoots>
         </entryData>
       </entry>

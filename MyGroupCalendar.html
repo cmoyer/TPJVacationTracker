@@ -19,15 +19,12 @@
 <body>
 
 
-<nav class="navbar navbar-default navbar-fixed-top first-navbar">
-    <div id="navLinksContainer" class="container-fluid">
-        <div class="navbar-header">
-            <img src="images/vtBanner.jpg"/>
-        </div>
-
-
-        <div id="navbarLinks" class="navbar-collapse collapse">
+<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container-fluid">
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav">
+                <li class="pull-left"><img src="images/vtBanner.jpg"/></li>
 
                 <li class="dropdown">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
@@ -43,32 +40,27 @@
                        aria-expanded="false">My Approvals <span class="caret"></span></a>
                     <ul class="dropdown-menu">
                         <li><a href="MyApprovals.html">My Approvals</a></li>
-                        <li ><a href="ApproverCalendar.html">Calendar View</a></li>
+                        <li><a href="ApproverCalendar.html">Calendar View</a></li>
+                    </ul>
+                </li>
+
+                <li class="dropdown test-dropdown pull-right">
+                    <a href="#" id="userButton" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <span class="glyphicon glyphicon-user" aria-hidden="true"></span> <span
+                            ng-bind="user.username">&nbsp;&nbsp;</span><span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li class="">
+                            <a id="" href="#" ng-click="logoutUser()">
+                                Log out
+                            </a>
+                        </li>
                     </ul>
                 </li>
             </ul>
-        </div><!--/.nav-collapse -->
-    </div>
+        </div><!-- /.navbar-collapse -->
+    </div><!-- /.container-fluid -->
 </nav>
-
-<!--User button-->
-<div id="navbar1" class="hidden-xs">
-    <ul class="nav navbar-nav applayout-links navbar-right">
-
-        <li class="dropdown test-dropdown">
-            <a href="#" id="userButton" class="dropdown-toggle" data-toggle="dropdown"
-               aria-haspopup="true" aria-expanded="false">
-            </a>
-            <ul class="dropdown-menu">
-                <li class="">
-                    <a id="" href="#" ng-click="logoutUser()">
-                        Log out
-                    </a>
-                </li>
-            </ul>
-        </li>
-    </ul>
-</div>
 
 
 <nav class="navbar navbar-default navbar-fixed-top second-navbar" ng-show="true">

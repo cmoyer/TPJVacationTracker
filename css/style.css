@@ -274,9 +274,18 @@ select[disabled] {
 /* Header, Footer, and Navbar */
 /*---------------------------------------------*/
 
-#navbarLinks ul.nav.navbar-nav{
-    padding-left: 18%;
+
+
+.navbar-nav {
+    width: 100%;
+    text-align: center;
 }
+.navbar-nav> li {
+      float: none;
+      display: inline-block;
+  }
+
+
 
 
 
@@ -484,6 +493,17 @@ input::-webkit-inner-spin-button {
     line-height: 2em;
     padding: 25px;
     box-shadow: 0px 5px 18px #aaa;
+}
+
+/* DISABLE PHONE ACCESS */
+#notAvailableMaskNav {
+    position: absolute;
+    margin: 0;
+}
+
+#notAvailableContentNav {
+    position: absolute;
+    margin: 0;
 }
 
 
