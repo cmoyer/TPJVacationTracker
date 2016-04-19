@@ -30,14 +30,26 @@
                     center: 'title',
                     right: 'month,basicWeek,basicDay'
                 },
-                editable: true,
+                editable: false,
+                selectable:true,
+                unselectAuto:false,
+                selectHelper:true,
                 eventLimit: true, // allow "more" link when too many events
                 events: [
 
                 ],
                 dayClick: function() {
-                    alert('a day has been clicked!');
+
+                    // change the day's background color just for fun
+                    //$(this).css('background-color', 'red');
+                },
+                select: function(start, end){
+                    //This is a call back that will fire after a selection is made
+                    alert("Start date: " + start.format());
+                    alert("End date: " + end.format());
                 }
+
+
             });
 
         });
