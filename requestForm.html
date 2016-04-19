@@ -14,6 +14,7 @@
     <script src="FullCalendar/lib/jquery.min.js"></script>
     <script src="FullCalendar/lib/moment.min.js"></script>
     <script src="FullCalendar/js/fullcalendar.js"></script>
+    <script src="js/calendarActions.js"></script>
 
     <!--Our Stylesheets-->
     <link href="css/style.css" rel="stylesheet">
@@ -35,18 +36,39 @@
                 unselectAuto:false,
                 selectHelper:true,
                 eventLimit: true, // allow "more" link when too many events
-                events: [
+                businessHours: true,
+                //weekends: false,
 
-                ],
                 dayClick: function() {
 
                     // change the day's background color just for fun
                     //$(this).css('background-color', 'red');
                 },
                 select: function(start, end){
-                    //This is a call back that will fire after a selection is made
-                    alert("Start date: " + start.format());
-                    alert("End date: " + end.format());
+
+                    console.log(start.format());
+                    console.log(end.format());
+
+                    //we need to gather all of the days that aren't weekends and store them in an array
+                    var dateArray = new Array();
+                    var startDate = new Date(start.format());
+                    var endDate = new Date(end.format());
+                    startDate.setDate(startDate.getDate()+1);
+                    dateArray = getDates(startDate, endDate);
+
+                    //get the weekdays from the dateArray and store them in this array.
+                    var vacationDays = [];
+                    var arrayLength = dateArray.length;
+                    for (var i = 0; i < arrayLength; i++){
+                        var selectedDate = dateArray[i];
+                        var day = selectedDate.getDay();
+                        if (day != 0 && day != 6) {
+                            vacationDays.push(selectedDate);
+                        }
+                    }
+
+                    console.log(dateArray);
+                    console.log(vacationDays);
                 }
 
 
@@ -67,8 +89,8 @@
         </div>
 
 
-        <div id="navbar" class="navbar-collapse collapse">
-            <ul class="nav navbar-nav">
+        <div  class="navbar-collapse collapse">
+            <ul id="navbarLinks" class="nav navbar-nav">
 
                 <li class="dropdown">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
@@ -93,7 +115,7 @@
 </nav>
 
 <!--User button-->
-<div id="navbar1" class="hidden-xs">
+<div id="navbar" class="hidden-xs">
     <ul class="nav navbar-nav applayout-links navbar-right">
 
         <li class="dropdown test-dropdown">
@@ -137,13 +159,45 @@
         </div>
 
         <!--The Full/half day selections-->
-        <div class="col-md-4"></div>
+        <div class="col-md-4">
+            <h4>Dates Selected</h4>
+            <hr/>
+        </div>
     </div>
 
     <!--Row containing Vacation Profile information-->
     <div class="row">
         <div class="col-md-12">
 
+            <h3>My Vacation Hours</h3>
+            <table class="table table-hover">
+                <thead class="thead-default">
+                <tr>
+                    <th>Year</th>
+                    <th>Start of Year</th>
+                    <th>Rolled Over</th>
+                    <th>Floating</th>
+                    <th>Year Total</th>
+                    <th>Requested</th>
+                    <th>Approved</th>
+                    <th>Taken</th>
+                    <th>Remaining</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <th scope="row">2016</th>
+                    <td>160</td>
+                    <td>12</td>
+                    <td>8</td>
+                    <td>180</td>
+                    <td>24</td>
+                    <td>8</td>
+                    <td>16</td>
+                    <td>132</td>
+                </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
