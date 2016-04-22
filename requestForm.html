@@ -50,13 +50,15 @@
                 },
                 select: function(start, end){
 
-                    console.log(start.format());
-                    console.log(end.format());
 
                     //we need to gather all of the days that aren't weekends and store them in an array
                     var dateArray;
                     var startDate = new Date(start.format());
                     var endDate = new Date(end.format());
+
+                    console.log(startDate);
+                    console.log(endDate);
+
                     startDate.setDate(startDate.getDate()+1);
                     dateArray = getDates(startDate, endDate);
 
@@ -71,8 +73,11 @@
                         }
                     }
 
-                    console.log(dateArray);
-                    console.log(vacationDays);
+//                    console.log(dateArray);
+//                    console.log(vacationDays);
+
+                    // Now that we have the dates, dynamically create the form.
+                    createDateSelections(vacationDays);
                 }
 
 
@@ -149,14 +154,17 @@
     <div class="row">
 
         <!--Our Calendar-->
-        <div class="col-md-6">
+        <div class="col-md-7">
             <div id='calendar'></div>
         </div>
 
         <!--The Full/half day selections-->
-        <div class="col-md-6">
+        <div class="col-md-5">
             <h4>Dates Selected</h4>
-            <hr/>
+
+            <form action="#" id="mainform" method="get" name="mainform">
+                <table id="myForm" class="table table-striped table-condensed"></table>
+            </form>
         </div>
     </div>
 
