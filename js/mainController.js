@@ -2,7 +2,7 @@
  * Created by chad on 4/25/16.
  */
 
-var main = angular.module('main', []);
+var main = angular.module('main', ['ngRoute']);
 var domainURL = '//www.pjdick.com';
 var dataURL = domainURL + '/VacationTracker.nsf';
 var recordLockURL = domainURL + '/VacationTracker.nsf/api/data/documents';
@@ -31,7 +31,7 @@ main.controller('mainCtrl', function($scope, $http){
     function initialize(){
         
         // on load of the page, get the information for the currently authenticated user
-        //getUserData();
+        getUserData();
         
         // on load of the page, get the System Defaults data
         //getSystemDefaults();
@@ -39,31 +39,40 @@ main.controller('mainCtrl', function($scope, $http){
         
     }
 
+
+
     function getSystemDefaults() {
-        $http({
-            method: 'GET',
-            url: sysdefURL
-        }).then(function successCallback(response) {
-            // this callback will be called asynchronously
-            // when the response is available
-            console.log("success");
-        }, function errorCallback(response) {
-            // called asynchronously if an error occurs
-            // or server returns response with an error status.
-            console.log("error");
+        //get the System Defaults from the Domino database
+        $http.get(sysdefURL).
+        success(function(data) {
+            $scope.systemDefaults = data[0];
+            if ($rootScope.project.status == null) {
+                $rootScope.project.status = data[0].statuses[0];
+            }
+            //alert('user data loaded');
+        }).
+        error(function(data, status, headers, config) {
+            // log error
         });
     }
 
     function getUserData(){
-        $http({
-            method: 'GET',
-            url: dataURL + '/getLoginStatus?OpenPage'
-        }).then(function successCallback(response) {
-            // this callback will be called asynchronously
-            // when the response is available
-        }, function errorCallback(response) {
-            // called asynchronously if an error occurs
-            // or server returns response with an error status.
+        //get the user data for the authenticated user from the Domino server
+        $http.get(dataURL + '/getLoginStatus?OpenPage').
+        success(function(data) {
+            //console.log(data);
+            $scope.user = data;
+            if ($rootScope.project.preparedBy == null){
+                $rootScope.project.preparedBy = data.username;
+                $rootScope.project.date = currentDateTime();
+                checkLock($scope.uid);
+                if (!$scope.uid){
+                    setReadMode();
+                }
+            }
+        }).
+        error(function(data, status, headers, config) {
+            // log error
         });
     }
 
