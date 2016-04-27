@@ -80,7 +80,7 @@ define([
 
         callback(results);
       }, function () {
-        // TODO: Handle AJAX errors
+        // 
       });
 
       self._request = $request;

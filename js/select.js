@@ -63,7 +63,7 @@
      * Add querySelectorAll() to jqLite.
      *
      * jqLite find() is limited to lookups by tag name.
-     * TODO This will change with future versions of AngularJS, to be removed when this happens
+     * 
      *
      * See jqLite.find - why not use querySelectorAll? https://github.com/angular/angular.js/issues/3586
      * See feat(jqLite): use querySelectorAll instead of getElementsByTagName in jqLite.find https://github.com/angular/angular.js/pull/3598
@@ -361,7 +361,7 @@
                     ctrl.refreshItems = function (data){
                         data = data || ctrl.parserResult.source($scope);
                         var selectedItems = ctrl.selected;
-                        //TODO should implement for single mode removeSelected
+                        //
                         if ((angular.isArray(selectedItems) && !selectedItems.length) || !ctrl.removeSelected) {
                             ctrl.setItemsFn(data);
                         }else{
@@ -384,7 +384,7 @@
                                 throw uiSelectMinErr('items', "Expected an array but got '{0}'.", items);
                             } else {
                                 //Remove already selected items (ex: while searching)
-                                //TODO Should add a test
+                                //
                                 ctrl.refreshItems(items);
                                 ctrl.ngModel.$modelValue = null; //Force scope model value and ngModel value to be out of sync to re-run formatters
                             }
@@ -634,7 +634,7 @@
                     var key = e.which;
 
                     // if(~[KEY.ESC,KEY.TAB].indexOf(key)){
-                    //   //TODO: SEGURO?
+                    //   
                     //   ctrl.close();
                     // }
 
@@ -1197,7 +1197,7 @@
                             processed = _handleMatchSelection(key);
                         }
                         if (processed  && key != KEY.TAB) {
-                            //TODO Check si el tab selecciona aun correctamente
+                            //
                             //Crear test
                             e.preventDefault();
                             e.stopPropagation();
