@@ -2,19 +2,20 @@
  * Created by chad on 4/25/16.
  */
 
-var main = angular.module('main', ['ngRoute']);
+var main = angular.module('main', ['ngRoute', 'angularUUID2']);
 var domainURL = '//www.pjdick.com';
 var dataURL = domainURL + '/VacationTracker.nsf';
 var recordLockURL = domainURL + '/VacationTracker.nsf/api/data/documents';
 var getLocksURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/LockedRecords';
-var sysdefURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/System Defaults';
+var sysdefURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/SystemDefaults';
 var dsMaxCount = 100; // the maximum count for the Domino data services
 
-main.controller('mainCtrl', function($scope, $http){
+main.controller('mainCtrl', function($scope, $http, $rootScope, $location, $window, uuid2){
 
     // custom functions added to scope
     $scope.createVacationRequest = createVacationRequest;
     $scope.logoutUser = logoutUser;
+    $scope.getUserData = getUserData;
     
     // validation functions
 
@@ -31,12 +32,14 @@ main.controller('mainCtrl', function($scope, $http){
     function initialize(){
         
         // on load of the page, get the information for the currently authenticated user
-        getUserData();
+        //getUserData();
+
+        testUserData();
         
         // on load of the page, get the System Defaults data
-        //getSystemDefaults();
-        
-        
+        getSystemDefaults();
+
+        console.log($scope);
     }
 
 
@@ -46,14 +49,28 @@ main.controller('mainCtrl', function($scope, $http){
         $http.get(sysdefURL).
         success(function(data) {
             $scope.systemDefaults = data[0];
-            if ($rootScope.project.status == null) {
-                $rootScope.project.status = data[0].statuses[0];
-            }
+            console.log(data[0]);
+            //console.log($scope.systemDefaults.emailenv);
             //alert('user data loaded');
         }).
         error(function(data, status, headers, config) {
             // log error
+            console.log("error");
         });
+    }
+
+    function testUserData(){
+        $scope.user = {
+            "authenticated": true,
+            "username" : "Notes Developer",
+            "dbaccess": "Editor",
+            "roles": "[Admin]",
+            "phone": "",
+            "email": "",
+            "userid": "",
+            "returnStatus": "0",
+            "returnResponse": "Success"
+        }
     }
 
     function getUserData(){
@@ -62,14 +79,8 @@ main.controller('mainCtrl', function($scope, $http){
         success(function(data) {
             //console.log(data);
             $scope.user = data;
-            if ($rootScope.project.preparedBy == null){
-                $rootScope.project.preparedBy = data.username;
-                $rootScope.project.date = currentDateTime();
-                checkLock($scope.uid);
-                if (!$scope.uid){
-                    setReadMode();
-                }
-            }
+
+
         }).
         error(function(data, status, headers, config) {
             // log error

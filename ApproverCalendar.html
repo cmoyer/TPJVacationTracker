@@ -1,9 +1,13 @@
 <!DOCTYPE html>
-<html>
+<html ng-app="main">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <link rel="apple-touch-icon" sizes="144x144" href="images/ipad-retina.png" />
+    <link rel="apple-touch-icon" sizes="114x114" href="images/iphone-retina.png" />
+    <link rel="apple-touch-icon" sizes="72x72" href="images/ipad.png" />
+    <link rel="apple-touch-icon" href="images/iphone.png" />
     <title>Vacation Tracker</title>
 
     <!--Frameworks-->
@@ -11,21 +15,50 @@
     <link href="bootstrap/css/bootstrap-theme.min.css" rel="stylesheet">
     <link href="//cdnjs.cloudflare.com/ajax/libs/select2/3.4.5/select2.css" rel="stylesheet">
 
+    <!--jQuery-->
+    <script src="js/jquery-1.11.3.min.js"></script>
+
+    <!--FullCalendar-->
+    <script src="FullCalendar/lib/jquery.min.js"></script>
+    <script src="FullCalendar/lib/moment.min.js"></script>
+    <script src="FullCalendar/js/fullcalendar.js"></script>
+    <link href="FullCalendar/css/fullcalendar.css" rel="stylesheet">
+
+    <!--Angular-->
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.js"></script>
+    <script src="angular/angular-resource.js"></script>
+    <script src="angular/angular-route.min.js"></script>
+
+    <!-- GUID generator -->
+    <script src="js/angular-uuid2.min.js"></script>
+
+    <!--Our JS-->
+    <script src="js/calendarActions.js"></script>
+    <script src="js/mainController.js"></script>
+    <script src="js/support.js"></script>
+
+
+
     <!--Our Stylesheets-->
     <link href="css/style.css" rel="stylesheet">
     <link href="css/select.css" rel="stylesheet">
+
+
+
+
 </head>
 
-<body>
+<body ng-controller="mainCtrl" class="ng-cloak">
 
 
 <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
     <div class="container-fluid">
+
+
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav">
                 <li class="pull-left"><img src="images/vtBanner.jpg"/></li>
-
                 <li class="dropdown">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
                        aria-expanded="false">My Requests <span class="caret"></span></a>
@@ -43,7 +76,6 @@
                         <li class="active"><a href="ApproverCalendar.html">Calendar View</a></li>
                     </ul>
                 </li>
-
                 <li class="dropdown test-dropdown pull-right">
                     <a href="#" id="userButton" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <span class="glyphicon glyphicon-user" aria-hidden="true"></span> <span
@@ -67,20 +99,43 @@
     <div id="actionLinksContainer" class="container-fluid">
         <div class="navbar-header">
             <div class="pageTitle">
-                "Approver Calendar"
+                <h4>Approver Calendar</h4>
             </div>
         </div>
+
+
+
     </div>
 </nav>
 
+<footer class="navbar  navbar-fixed-bottom footer">
+    <div class="container-fluid">
+        <div class="pull-right">
+
+        </div>
+    </div>
+</footer>
+
+
+<div id="notAvailableMask" class="hidden-lg hidden-md hidden-sm">
+    <div id="notAvailableContent">
+        <p>
+            This application has not been optimized for use on small devices.
+        </p>
+        <p>
+            Please open it using an iPad or desktop browser.
+        </p>
+    </div>
+</div>
 
 
 <!-- Bootstrap core JavaScript
  ================================================== -->
 <!-- Placed at the end of the document so the pages load faster -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>-->
 <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')</script>
 <script src="bootstrap/js/bootstrap.min.js"></script>
+
 
 
 </body>
