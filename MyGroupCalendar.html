@@ -42,6 +42,8 @@
     <!--Our Stylesheets-->
     <link href="css/style.css" rel="stylesheet">
     <link href="css/select.css" rel="stylesheet">
+    <link href="css/glyphicons-bootstrap.css" rel="stylesheet">
+    <link href="css/glyphicons.css" rel="stylesheet">
 
     <!--Initialize the calendar-->
     <script>
@@ -54,7 +56,7 @@
                     right: 'month,basicWeek,basicDay'
                 },
                 editable: false,
-                selectable:true,
+                selectable:false,
                 unselectAuto:false,
                 selectHelper:true,
                 eventLimit: true, // allow "more" link when too many events
@@ -76,7 +78,7 @@
 
 
 <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
-    <div class="container-fluid">
+    <div class="container-fluid" >
 
 
         <!-- Collect the nav links, forms, and other content for toggling -->
@@ -126,6 +128,8 @@
                 <h4>My Group Calendar</h4>
             </div>
         </div>
+        <!-- user button -->
+        <div id="navbar" class="navbar-collapse collapse" ng-include="'partials/actions.html'"></div>
     </div>
 </nav>
 

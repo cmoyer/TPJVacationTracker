@@ -43,7 +43,29 @@
     <link href="css/style.css" rel="stylesheet">
     <link href="css/select.css" rel="stylesheet">
 
+    <!--Initialize the calendar-->
+    <script>
+        $(document).ready(function() {
 
+            $('#calendar').fullCalendar({
+                header: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'month,basicWeek,basicDay'
+                },
+                editable: false,
+                selectable:false,
+                unselectAuto:false,
+                selectHelper:true,
+                eventLimit: true, // allow "more" link when too many events
+                businessHours: true,
+                //weekends: false,
+
+
+            });
+
+        });
+    </script>
 
 
 </head>
@@ -107,6 +129,15 @@
 
     </div>
 </nav>
+
+<div id="calendarView" class="container-fluid">
+    <div class="row">
+        <div id='calendar'></div>
+    </div>
+
+    <!--We can place our legend in this row?-->
+    <div class="row"></div>
+</div>
 
 <footer class="navbar  navbar-fixed-bottom footer">
     <div class="container-fluid">

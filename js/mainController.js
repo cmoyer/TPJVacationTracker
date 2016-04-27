@@ -32,9 +32,9 @@ main.controller('mainCtrl', function($scope, $http, $rootScope, $location, $wind
     function initialize(){
         
         // on load of the page, get the information for the currently authenticated user
-        //getUserData();
+        getUserData();
 
-        testUserData();
+        //testUserData();
         
         // on load of the page, get the System Defaults data
         getSystemDefaults();
@@ -49,29 +49,16 @@ main.controller('mainCtrl', function($scope, $http, $rootScope, $location, $wind
         $http.get(sysdefURL).
         success(function(data) {
             $scope.systemDefaults = data[0];
-            console.log(data[0]);
+            //console.log(data[0]);
             //console.log($scope.systemDefaults.emailenv);
             //alert('user data loaded');
         }).
         error(function(data, status, headers, config) {
             // log error
-            console.log("error");
+            //console.log("error");
         });
     }
 
-    function testUserData(){
-        $scope.user = {
-            "authenticated": true,
-            "username" : "Notes Developer",
-            "dbaccess": "Editor",
-            "roles": "[Admin]",
-            "phone": "",
-            "email": "",
-            "userid": "",
-            "returnStatus": "0",
-            "returnResponse": "Success"
-        }
-    }
 
     function getUserData(){
         //get the user data for the authenticated user from the Domino server

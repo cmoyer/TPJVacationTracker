@@ -205,6 +205,13 @@ select[disabled] {
     font-style: italic;
 }
 
+
+/*---------------------------------------------*/
+/* Action Buttons */
+/*---------------------------------------------*/
+
+
+
 /*---------------------------------------------*/
 /* VACATION REQUEST FORM  */
 /*---------------------------------------------*/
@@ -233,7 +240,12 @@ select[disabled] {
 /*---------------------------------------------*/
 
 #calendarView{
+    padding-top: 10px;
+    padding-right: 30px;
+    padding-left: 30px;
+    padding-bottom: 30px;
 
+    max-width:1400px;
 }
 
 
