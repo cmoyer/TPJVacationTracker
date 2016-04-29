@@ -117,6 +117,24 @@ function currentDateTime() {
     return m + "/" + d + "/" + y + " " + h + ":" + n + ":" + s + " " + ampm;
 }
 
+function currentDate(){
+    var currentdate = new Date();
+    var d = currentdate.getDate();
+    var m = currentdate.getMonth()+1;
+    var y = currentdate.getFullYear();
+
+    return m + "/" + d + "/" + y;
+}
+
+function formatDate(date){
+    var currentdate = new Date(date);
+    var d = currentdate.getDate();
+    var m = currentdate.getMonth()+1;
+    var y = currentdate.getFullYear();
+
+    return m + "/" + d + "/" + y;
+}
+
 function getQueryString( field, url ) {
     var href = url ? url : window.location.href;
     var reg = new RegExp( '[?&]' + field + '=([^&#]*)', 'i' );

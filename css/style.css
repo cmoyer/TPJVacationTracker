@@ -210,6 +210,40 @@ select[disabled] {
 /* Action Buttons */
 /*---------------------------------------------*/
 
+/*---------------------------------------------*/
+/* Data Tables*/
+/*---------------------------------------------*/
+#dataTable td{
+    text-align: center;
+}
+
+#dataTable th{
+    text-align: center;
+}
+
+#dataTable{
+    margin-top: 20px;
+    font-size: medium;
+}
+
+#tableBody{
+    padding: 1% 5%;
+}
+
+#searchBar{
+    /*max-width: 700px;*/
+}
+
+#clearButton{
+    float: right;
+}
+
+#clearDiv{
+    max-width: 75px;
+    float: right;
+}
+
+
 
 
 /*---------------------------------------------*/

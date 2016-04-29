@@ -97,6 +97,8 @@
 
                     // Now that we have the dates, dynamically create the form.
                     createDateSelections(vacationDays);
+
+
                 }
 
 
@@ -217,7 +219,7 @@
         <div class="col-md-12">
 
             <h3>My Vacation Hours</h3>
-            <table class="table table-hover">
+            <table class="table table-hover" id="dataTable">
                 <thead class="thead-default">
                 <tr>
                     <th>Year</th>
@@ -276,7 +278,7 @@
                 <h4 class="modal-title" id="myModalLabel">{{modal.title}}</h4>
             </div>
             <div class="modal-body">
-                <!-- {{modal.body}} -->
+                {{modal.body}}
             </div>
             <div class="modal-footer">
                 <span ng-repeat="button in modal.buttons">

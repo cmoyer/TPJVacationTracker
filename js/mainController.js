@@ -12,6 +12,7 @@ var getLocksURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/Lo
 var getGroupURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/GroupsREST';
 var sysdefURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/SystemDefaults';
 var vacationProfileURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/VacationProfilesREST';
+var vacationRequestsURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/VacationRequestsREST';
 var dsMaxCount = 100; // the maximum count for the Domino data services
 
 function MainCtrl($rootScope, $scope, $location, $http, $window, uuid2){
@@ -26,14 +27,14 @@ function MainCtrl($rootScope, $scope, $location, $http, $window, uuid2){
     $scope.lockedBy = false;
     $scope.lockedByCurrentUser = false;
     $scope.readMode = true;
-    
-
-
 
     // support functions
     $scope.saveVacationRequest = saveVacationRequest;
     $scope.editVacationRequest = editVacationRequest;
     $scope.getVacationProfile = getVacationProfile;
+    $scope.getMyVacationRequests = getMyVacationRequests;
+    $scope.getAllVacationRequests = getAllVacationRequests;
+
 
 
 
@@ -47,9 +48,14 @@ function MainCtrl($rootScope, $scope, $location, $http, $window, uuid2){
     function initialize(){
         $scope.mainForm = {};
         $rootScope.vacationRequest = {};
+        $rootScope.vacationRequest.hoursThisRequest = 0;
         $rootScope.vacationProfile = {};
+        $rootScope.myVacationRequests = {};
+        $rootScope.allVacationRequests = {};
         $rootScope.group = {};
-
+        $scope.modalResponse = "none";
+        $scope.modal = {};
+        $scope.modal.buttons = [];
 
         // //watch for the empNotesName to change
         // $rootScope.$watch('empNotesName', function(value) {
@@ -95,13 +101,12 @@ function MainCtrl($rootScope, $scope, $location, $http, $window, uuid2){
             $scope.user = data;
             if ($rootScope.vacationRequest.preparedBy == null){
                 $rootScope.vacationRequest.preparedBy = data.username;
-                $rootScope.vacationRequest.date = currentDateTime();
+                $rootScope.vacationRequest.date = currentDate();
                 $rootScope.vacationRequest.empNotesName = "CN=" + $scope.user.username + "/O=TPJ";
             }
             getVacationProfile();
-
-
-
+            getMyVacationRequests();
+            getAllVacationRequests();
 
         }).
         error(function(data, status, headers, config) {
@@ -175,7 +180,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $window, uuid2){
 
         //getUserData();
         $rootScope.vacationRequest.empName = $scope.user.username;
-        $rootScope.vacationRequest.date = currentDateTime();
+        $rootScope.vacationRequest.date = currentDate();
         $rootScope.vacationRequest.status = "New";
         $rootScope.vacationRequest.empNotesName = "CN=" + $scope.user.username + "/O=TPJ";
 
@@ -213,44 +218,59 @@ function MainCtrl($rootScope, $scope, $location, $http, $window, uuid2){
         
         $rootScope.vacationRequest.hoursThisRequest = total;
         $rootScope.vacationRequest.datesRequested = selectedDays;
+        $rootScope.vacationRequest.requestComments = "";
 
         var length = selectedDays.length;
-        var startDate = new Date(selectedDays[0].name);
-        var endDate = new Date(selectedDays[length-1].name);
 
-        //create the notes backend document
-        //get the System Defaults from the Domino database
+        if (length == 0){
+            $scope.modal.title = "Not Enough Information to Save";
+            $scope.modal.body = "You must select at least one day on the calendar before saving.";
+            $scope.modal.buttons = [];
+            var button1 = {};
+            button1.label = "OK";
+            button1.callback = "";
+            $scope.modal.buttons.push(button1);
+            $('#myModal').modal('show');
+        } else {
+            var startDate = formatDate(selectedDays[0].name);
+            var endDate = formatDate(selectedDays[length-1].name);
 
-        var data = {
-            'empName': $rootScope.vacationRequest.empName,
-            'date': $rootScope.vacationRequest.date,
-            'startDate': startDate,
-            'endDate': endDate,
-            'status': $rootScope.vacationRequest.status,
-            'empNotesName': $rootScope.vacationRequest.empNotesName,
-            'hoursThisRequest': $rootScope.vacationRequest.hoursThisRequest,
-            'Approvers': $rootScope.vacationRequest.approvers
-            // 'datesRequested': $rootScope.vacationRequest.datesRequested
-        };
+            //create the notes backend document
+            //get the System Defaults from the Domino database
 
-        console.log(data);
+            var data = {
+                'empName': $rootScope.vacationRequest.empName,
+                'date': $rootScope.vacationRequest.date,
+                'startDate': startDate,
+                'endDate': endDate,
+                'status': $rootScope.vacationRequest.status,
+                'empNotesName': $rootScope.vacationRequest.empNotesName,
+                'hoursThisRequest': $rootScope.vacationRequest.hoursThisRequest,
+                'Approvers': $rootScope.vacationRequest.approvers,
+                'Comments': $rootScope.vacationRequest.requestComments
+                // 'datesRequested': $rootScope.vacationRequest.datesRequested
+            };
 
-        $http.post(dataPOST + "?form=Vacation%20Request", data).
-        then(function (response) {
-            console.log(response)
+            console.log(data);
 
-        });
+            $http.post(dataPOST + "?form=Vacation%20Request", data).
+            then(function (response) {
+                console.log(response)
+                $window.location.href = "myRequests.html";
+            });
 
 
-        // var newEvent = new Object();
-        //
-        // newEvent.title = $rootScope.vacationRequest.empName;
-        // newEvent.start = new Date(selectedDays[0].name);
-        // var tmpEnd = new Date(selectedDays[length-1].name);
-        // newEvent.end = tmpEnd.setDate(tmpEnd.getDate() + 1);
-        // newEvent.allDay = false;
-        // $('#calendar').fullCalendar( 'renderEvent', newEvent );
-        
+
+
+            // var newEvent = new Object();
+            //
+            // newEvent.title = $rootScope.vacationRequest.empName;
+            // newEvent.start = new Date(selectedDays[0].name);
+            // var tmpEnd = new Date(selectedDays[length-1].name);
+            // newEvent.end = tmpEnd.setDate(tmpEnd.getDate() + 1);
+            // newEvent.allDay = false;
+            // $('#calendar').fullCalendar( 'renderEvent', newEvent );
+        }
             
     }
 
@@ -341,6 +361,28 @@ function MainCtrl($rootScope, $scope, $location, $http, $window, uuid2){
     }
 
 
+    function getMyVacationRequests(){
+        var u = $rootScope.vacationRequest.empNotesName;
+        var requestString = vacationRequestsURL + "?keys=" + u + "&keysexactmatch=true";
+        $http.get(requestString).
+        success(function(data) {
+            $rootScope.myVacationRequests = data;
+        }).
+        error(function(data, status, headers, config) {
+            // log error
+        });
+    }
+
+    function getAllVacationRequests(){
+        $http.get(vacationRequestsURL).
+        success(function(data) {
+            $rootScope.allVacationRequests = data;
+        }).
+        error(function(data, status, headers, config) {
+            // log error
+        });
+    }
+
 
     function getUserGroup(){
 
@@ -350,13 +392,16 @@ function MainCtrl($rootScope, $scope, $location, $http, $window, uuid2){
         success(function(data) {
             $rootScope.group = data;
             $rootScope.vacationRequest.approvers = $rootScope.group[0].Approvers;
-            console.log($rootScope.vacationRequest.approvers);
         }).
         error(function(data, status, headers, config) {
             // log error
         });
 
     }
+
+
+
+
 
 
 }
