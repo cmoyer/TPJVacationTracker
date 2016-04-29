@@ -77,8 +77,6 @@
                     var startDate = new Date(start.format());
                     var endDate = new Date(end.format());
 
-                    console.log(startDate);
-                    console.log(endDate);
 
                     startDate.setDate(startDate.getDate()+1);
                     dateArray = getDates(startDate, endDate);
@@ -105,6 +103,10 @@
             });
 
         });
+
+
+
+
     </script>
 
 </head>
@@ -114,8 +116,6 @@
 
 <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
     <div class="container-fluid" >
-
-
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav">
@@ -164,7 +164,7 @@
             </div>
         </div>
         <!-- user button -->
-        <div id="navbar" class="navbar-collapse collapse" ng-include="'partials/actions.html'"></div>
+        <div id="navbar" class="navbar-collapse collapse" ng-include="'partials/formActions.html'"></div>
     </div>
 </nav>
 
@@ -176,6 +176,20 @@
         <!--Our Calendar-->
         <div class="col-md-7">
             <div id='calendar'></div>
+
+               <BR>
+                <!--Legend-->
+                <div class="row" id="testLegend">
+                <div class='my-legend'>
+                    <div class='legend-scale'>
+                        <ul class='legend-labels'>
+                            <li><span style='background:#fcf8e3;'></span>Today</li>
+                            <li><span style='background:#bfbfbf;'></span>Weekend</li>
+                            <li><span style='background:#bce8f1;'></span>Selected</li>
+                        </ul>
+                    </div>
+                </div>
+                </div>
         </div>
 
         <!--The Full/half day selections-->
@@ -185,8 +199,18 @@
             <form action="#" id="mainform" method="get" name="mainform">
                 <table id="myForm" class="table table-striped table-condensed"></table>
             </form>
+
+            <div class="row">
+                <!--HoursSoFar-->
+                <div class = pull-right>
+                    <h4>Total Hours This Request: </h4>
+                    <h2 class="pull-right" id="totalHours">{{vacationRequest.hoursThisRequest}}</h2>
+                </div>
+            </div>
         </div>
     </div>
+
+
 
     <!--Row containing Vacation Profile information-->
     <div class="row">
@@ -207,17 +231,17 @@
                     <th>Remaining</th>
                 </tr>
                 </thead>
-                <tbody>
+                <tbody ng-repeat="x in vacationProfile">
                 <tr>
-                    <th scope="row">2016</th>
-                    <td>160</td>
-                    <td>12</td>
-                    <td>8</td>
-                    <td>180</td>
-                    <td>24</td>
-                    <td>8</td>
-                    <td>16</td>
-                    <td>132</td>
+                    <td scope="row">{{x.Year}}</td>
+                    <td>{{x.HoursThisYear}}</td>
+                    <td>{{x.HoursRolledOver}}</td>
+                    <td>{{x.FloatingHolidayHours}}</td>
+                    <td>{{x.TotalHours}}</td>
+                    <td>{{x.HoursRequested}}</td>
+                    <td>{{x.HoursApproved}}</td>
+                    <td>{{x.HoursTaken}}</td>
+                    <td>{{x.HoursRemaining}}</td>
                 </tr>
                 </tbody>
             </table>
@@ -228,9 +252,7 @@
 
 <footer class="navbar  navbar-fixed-bottom footer">
     <div class="container-fluid">
-        <div class="pull-right">
 
-        </div>
     </div>
 </footer>
 
@@ -245,7 +267,25 @@
     </div>
 </div>
 
-
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" ng-show="false"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">{{modal.title}}</h4>
+            </div>
+            <div class="modal-body">
+                <!-- {{modal.body}} -->
+            </div>
+            <div class="modal-footer">
+                <span ng-repeat="button in modal.buttons">
+                    <button type="button" class="btn btn-default" data-dismiss="modal" ng-click="callFunction(button.callback)">{{button.label}}</button>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
 <!-- Bootstrap core JavaScript
  ================================================== -->
 <!-- Placed at the end of the document so the pages load faster -->

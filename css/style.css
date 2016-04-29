@@ -235,6 +235,54 @@ select[disabled] {
     padding-left: 30px;
 }
 
+#totalHours {
+    color: #2aabd2;
+}
+
+
+.my-legend .legend-scale ul {
+    margin: 0;
+    padding: 0;
+    float: left;
+    list-style: none;
+
+
+
+}
+.my-legend .legend-scale ul li {
+    display: block;
+    float: left;
+    width: 50px;
+    margin-bottom: 6px;
+    text-align: center;
+    font-size: 80%;
+    list-style: none;
+}
+.my-legend ul.legend-labels li span {
+    display: block;
+    float: left;
+    height: 30px;
+    width: 50px;
+
+}
+.my-legend a {
+    color: #777;
+}
+
+.my-legend {
+    padding-left: 40%;
+
+    margin: auto;
+}
+
+.my-legend .legend-labels{
+
+}
+
+
+
+
+
 /*---------------------------------------------*/
 /* Calendar Views  */
 /*---------------------------------------------*/

@@ -1,42 +1,13 @@
-<!--
-<div ng-show="location == 'requestForm'">
-    <button type="submit" class="btn btn-default btn-sm pull-right" id="closeButton" ng-click="" ng-disabled="true">
-        <span class="glyphicon glyphicon-folder-close" aria-hidden="true"></span> Close
-    </button>
-    <button type="submit" class="btn btn-default btn-sm pull-right" id="saveButton" ng-click="saveProject()" ng-disabled="true">
-        <span class="glyphicon glyphicon-save" aria-hidden="true"></span> Save
-    </button>
-    <div class="btn-group pull-right">
-        <button class="btn btn-default btn-sm dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="statusButton">
-            <span class="glyphicon glyphicon-flag" aria-hidden="true" ng-show="false"></span> {{project.status}} &nbsp;<span class="caret"></span>
-        </button>
-        <ul class="dropdown-menu">
-            <li ng-repeat="status in systemDefaults.statuses">
-                <a href ng-show="status != project.status" ng-click="changeStatus(status)">{{status}}</a>
-            </li>
-        </ul>
-    </div>
-</div>
-<div ng-show="location != 'requestForm'">
-    <button type="submit" class="btn btn-default btn-sm pull-right" id="createButton"
-            ng-click="createVacationRequest()">
-        <span class="glyphicon glyphicon-edit" aria-hidden="true"></span> Create Request
-    </button>
-</div>
--->
+
 <div id="actionButtons">
-    <div ng-show="location == 'requestForm'">
-
-    </div>
-
-    <div ng-show="location != 'requestForm'" class="pull-right">
+    <div class="pull-right">
         <ul class="nav navbar-nav navbar-right action-bar">
             <li>
-                <a href="#" ng-click="createProject()">
-                    <span class="glyphicons glyphicons-new-window-alt" aria-hidden="true"></span> Create Request
+                <a href="#" ng-click="createVacationRequest()">
+                    <span class="glyphicons glyphicons-new-window-alt" aria-hidden="true"></span> Create Vacation
+                    Request
                 </a>
             </li>
         </ul>
-
     </div>
 </div>

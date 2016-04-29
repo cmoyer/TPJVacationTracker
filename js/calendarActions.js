@@ -45,9 +45,9 @@ var createDateSelections = function(vacationDays) {
         var label = document.createTextNode(formattedDate.toString());
         td1.appendChild(label);
 
-        td2.appendChild(makeRadioButton(vacationDays[j].toString(),"Whole","   Whole Day", true));
-        td3.appendChild(makeRadioButton(vacationDays[j].toString(),"Morning","   Morning", false));
-        td4.appendChild(makeRadioButton(vacationDays[j].toString(),"Afternoon","   Afternoon", false));
+        td2.appendChild(makeRadioButton(formattedDate.toString(),"Whole","   Whole Day", true));
+        td3.appendChild(makeRadioButton(formattedDate.toString(),"Morning","   Morning", false));
+        td4.appendChild(makeRadioButton(formattedDate.toString(),"Afternoon","   Afternoon", false));
 
         tr.appendChild(td1);
         tr.appendChild(td2);
@@ -70,7 +70,10 @@ function makeRadioButton(name, value, text, checked) {
     radio.name = name;
     radio.value = value;
     radio.checked = checked;
-
+    radio.className = "calc";
+    radio.id = name + "~" + value;
+    //radio.setAttribute("ng-change", "updateSum(foo)");
+    //radio.setAttribute("ng-model", "foo");
 
     label.appendChild(radio);
     label.appendChild(document.createTextNode(text));
