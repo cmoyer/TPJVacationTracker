@@ -2,8 +2,8 @@
  * Created by chad on 4/25/16.
  */
 
-var main = angular.module('main', ['ngRoute', 'angularUUID2'])
-    .controller('mainCtrl',['$rootScope','$scope', '$location', '$http', '$window', 'uuid2', MainCtrl]);
+var main = angular.module('main', ['ui.calendar','ngRoute','angularUUID2'])
+    .controller('mainCtrl',['$rootScope','$scope', '$location', '$http', '$compile', '$window', 'uuid2', MainCtrl]);
 var domainURL = '//www.pjdick.com';
 var dataURL = domainURL + '/VacationTracker.nsf';
 var recordLockURL = domainURL + '/VacationTracker.nsf/api/data/documents';
@@ -15,7 +15,7 @@ var vacationProfileURL = domainURL + '/VacationTracker.nsf/api/data/collections/
 var vacationRequestsURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/VacationRequestsREST';
 var dsMaxCount = 100; // the maximum count for the Domino data services
 
-function MainCtrl($rootScope, $scope, $location, $http, $window, uuid2){
+function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid2){
     
     // custom functions added to scope
     $scope.createVacationRequest = createVacationRequest;
@@ -28,12 +28,14 @@ function MainCtrl($rootScope, $scope, $location, $http, $window, uuid2){
     $scope.lockedByCurrentUser = false;
     $scope.readMode = true;
 
+
     // support functions
     $scope.saveVacationRequest = saveVacationRequest;
     $scope.editVacationRequest = editVacationRequest;
     $scope.getVacationProfile = getVacationProfile;
     $scope.getMyVacationRequests = getMyVacationRequests;
     $scope.getAllVacationRequests = getAllVacationRequests;
+    $scope.getAllRequests = getAllRequests;
 
 
 
@@ -377,6 +379,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $window, uuid2){
         $http.get(vacationRequestsURL).
         success(function(data) {
             $rootScope.allVacationRequests = data;
+            // console.log($rootScope.allVacationRequests);
         }).
         error(function(data, status, headers, config) {
             // log error
@@ -399,7 +402,199 @@ function MainCtrl($rootScope, $scope, $location, $http, $window, uuid2){
 
     }
 
+    function getAllRequests(){
+        return $rootScope.allVacationRequests;
+    }
 
+
+    
+    
+    // *********************************************
+    // Angular Calendar
+    // *********************************************
+    var date = new Date();
+    var d = date.getDate();
+    var m = date.getMonth();
+    var y = date.getFullYear();
+
+    $scope.changeTo = 'Hungarian';
+    /* event source that pulls from google.com */
+    $scope.eventSource = {
+        // url: "http://www.google.com/calendar/feeds/usa__en%40holiday.calendar.google.com/public/basic",
+        // className: 'gcal-event',           // an option!
+        // currentTimezone: 'America/Chicago' // an option!
+    };
+    /* event source that contains custom events on the scope */
+    $scope.events = [
+        {title: 'All Day Event',start: new Date(y, m, 1)},
+        {title: 'Long Event',start: new Date(y, m, d - 5),end: new Date(y, m, d - 2)},
+        {id: 999,title: 'Repeating Event',start: new Date(y, m, d - 3, 16, 0),allDay: false},
+        {id: 999,title: 'Repeating Event',start: new Date(y, m, d + 4, 16, 0),allDay: false},
+        {title: 'Birthday Party',start: new Date(y, m, d + 1, 19, 0),end: new Date(y, m, d + 1, 22, 30),allDay: false},
+        {title: 'Click for Google',start: new Date(y, m, 28),end: new Date(y, m, 29),url: 'http://google.com/'}
+    ];
+    /* event source that calls a function on every view switch */
+    $scope.eventsF = function (start, end, timezone, callback) {
+        var s = new Date(start).getTime() / 1000;
+        var e = new Date(end).getTime() / 1000;
+        var m = new Date(start).getMonth();
+        var events = [{title: 'Feed Me ' + m,start: s + (50000),end: s + (100000),allDay: false, className: ['customFeed']}];
+        callback(events);
+    };
+
+    // $scope.calEventsExt = {
+    //     color: '#f00',
+    //     textColor: 'yellow',
+    //     events: [
+    //         {type:'party',title: 'Lunch',start: new Date(y, m, d, 12, 0),end: new Date(y, m, d, 14, 0),allDay: false},
+    //         {type:'party',title: 'Lunch 2',start: new Date(y, m, d, 12, 0),end: new Date(y, m, d, 14, 0),allDay: false},
+    //         {type:'party',title: 'Click for Google',start: new Date(y, m, 28),end: new Date(y, m, 29),url: 'http://google.com/'}
+    //     ]
+    // };
+    /* alert on eventClick */
+    $scope.alertOnEventClick = function( date, jsEvent, view){
+        $scope.alertMessage = (date.title + ' was clicked ');
+        alert($scope.alertMessage);
+    };
+    /* alert on Drop */
+    $scope.alertOnDrop = function(event, delta, revertFunc, jsEvent, ui, view){
+        $scope.alertMessage = ('Event Dropped to make dayDelta ' + delta);
+    };
+    /* alert on Resize */
+    $scope.alertOnResize = function(event, delta, revertFunc, jsEvent, ui, view ){
+        $scope.alertMessage = ('Event Resized to make dayDelta ' + delta);
+    };
+    /* add and removes an event source of choice */
+    $scope.addRemoveEventSource = function(sources,source) {
+        var canAdd = 0;
+        angular.forEach(sources,function(value, key){
+            if(sources[key] === source){
+                sources.splice(key,1);
+                canAdd = 1;
+            }
+        });
+        if(canAdd === 0){
+            sources.push(source);
+        }
+    };
+    /* add custom event*/
+    $scope.addEvent = function() {
+        $scope.events.push({
+            title: 'Open Sesame',
+            start: new Date(y, m, 28),
+            end: new Date(y, m, 29),
+            className: ['openSesame']
+        });
+    };
+    /* remove event */
+    $scope.remove = function(index) {
+        $scope.events.splice(index,1);
+    };
+    /* Change View */
+    $scope.changeView = function(view,calendar) {
+        uiCalendarConfig.calendars[calendar].fullCalendar('changeView',view);
+    };
+    /* Change View */
+    $scope.renderCalender = function(calendar) {
+        $timeout(function() {
+            if(uiCalendarConfig.calendars[calendar]){
+                uiCalendarConfig.calendars[calendar].fullCalendar('render');
+            }
+        });
+    };
+    /* Render Tooltip */
+    $scope.eventRender = function( event, element, view ) {
+        element.attr({'tooltip': event.title,
+            'tooltip-append-to-body': true});
+        $compile(element)($scope);
+    };
+    /* config object */
+    $scope.uiConfig = {
+        viewCalendar:{
+            editable: false,
+            selectable: false,
+            unselectAuto: false,
+            selectHelper: true,
+            eventLimit: true,
+            businessHours: true,
+            header:{
+                left: 'prev,next today',
+                center: 'title',
+                right: 'month,basicWeek,basicDay'
+            },
+            eventClick: $scope.alertOnEventClick,
+            eventDrop: $scope.alertOnDrop,
+            eventResize: $scope.alertOnResize,
+            eventRender: $scope.eventRender
+        },
+
+        formCalendar:{
+            editable: false,
+            selectable: true,
+            unselectAuto: false,
+            selectHelper: true,
+            eventLimit: true,
+            businessHours: true,
+            header:{
+                left: 'prev,next today',
+                center: 'title',
+                right: 'month'
+            },
+            eventClick: $scope.alertOnEventClick,
+            eventDrop: $scope.alertOnDrop,
+            eventResize: $scope.alertOnResize,
+            eventRender: $scope.eventRender,
+
+            select: function(start, end){
+
+
+                //we need to gather all of the days that aren't weekends and store them in an array
+                var dateArray;
+                var startDate = new Date(start.format());
+                var endDate = new Date(end.format());
+
+
+                startDate.setDate(startDate.getDate()+1);
+                dateArray = getDates(startDate, endDate);
+
+                //get the weekdays from the dateArray and store them in this array.
+                var vacationDays = [];
+                var arrayLength = dateArray.length;
+                for (var i = 0; i < arrayLength; i++){
+                    var selectedDate = dateArray[i];
+                    var day = selectedDate.getDay();
+                    if (day != 0 && day != 6) {
+                        vacationDays.push(selectedDate);
+                    }
+                }
+
+//                    console.log(dateArray);
+//                    console.log(vacationDays);
+
+                // Now that we have the dates, dynamically create the form.
+                createDateSelections(vacationDays);
+
+
+            }
+        }
+    };
+
+
+
+    // $scope.changeLang = function() {
+    //     if($scope.changeTo === 'Hungarian'){
+    //         $scope.uiConfig.calendar.dayNames = ["Vasárnap", "Hétfő", "Kedd", "Szerda", "Csütörtök", "Péntek", "Szombat"];
+    //         $scope.uiConfig.calendar.dayNamesShort = ["Vas", "Hét", "Kedd", "Sze", "Csüt", "Pén", "Szo"];
+    //         $scope.changeTo= 'English';
+    //     } else {
+    //         $scope.uiConfig.calendar.dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    //         $scope.uiConfig.calendar.dayNamesShort = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    //         $scope.changeTo = 'Hungarian';
+    //     }
+    // };
+    /* event sources array*/
+    $scope.eventSources = [$scope.events, $scope.eventSource, $scope.eventsF];
+    $scope.eventSources2 = [$scope.calEventsExt, $scope.eventsF, $scope.events];
 
 
 

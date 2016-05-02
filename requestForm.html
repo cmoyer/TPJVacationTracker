@@ -29,6 +29,8 @@
     <script src="angular/angular-resource.js"></script>
     <script src="angular/angular-route.min.js"></script>
 
+    <script src="js/calendar.js"></script>
+
     <!-- GUID generator -->
     <script src="js/angular-uuid2.min.js"></script>
 
@@ -177,7 +179,8 @@
 
         <!--Our Calendar-->
         <div class="col-md-7">
-            <div id='calendar'></div>
+            <div id='calendar' class="calendar" ng-model="eventSources" calendar="myCalendar1"
+                 ui-calendar="uiConfig.formCalendar"></div>
 
                <BR>
                 <!--Legend-->

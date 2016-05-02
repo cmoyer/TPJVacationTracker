@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html ng-app="main">
+<html ng-app="calendarDemoApp">
 
 <head>
     <meta charset="UTF-8">
@@ -29,8 +29,6 @@
     <script src="angular/angular-resource.js"></script>
     <script src="angular/angular-route.min.js"></script>
 
-    <script src="js/calendar.js"></script>
-
     <!-- GUID generator -->
     <script src="js/angular-uuid2.min.js"></script>
 
@@ -38,6 +36,8 @@
     <script src="js/calendarActions.js"></script>
     <script src="js/mainController.js"></script>
     <script src="js/support.js"></script>
+    <script src="js/calendar.js"></script>
+    <script src="js/calendarDemo.js"></script>
 
 
 
@@ -51,7 +51,7 @@
 
 </head>
 
-<body ng-controller="mainCtrl" class="ng-cloak">
+<body ng-controller="CalendarCtrl" class="ng-cloak">
 
 
 <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -66,7 +66,7 @@
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
                        aria-expanded="false">My Requests <span class="caret"></span></a>
                     <ul class="dropdown-menu">
-                        <li class="active"><a href="MyRequests.html">My Requests by Date</a></li>
+                        <li><a href="MyRequests.html">My Requests by Date</a></li>
                         <li><a href="MyGroupCalendar.html">My Group's Calendar</a></li>
                     </ul>
                 </li>
@@ -76,7 +76,7 @@
                        aria-expanded="false">My Approvals <span class="caret"></span></a>
                     <ul class="dropdown-menu">
                         <li><a href="MyApprovals.html">My Approvals</a></li>
-                        <li><a href="ApproverCalendar.html">Calendar View</a></li>
+                        <li class="active"><a href="ApproverCalendar.html">Calendar View</a></li>
                     </ul>
                 </li>
                 <li class="dropdown test-dropdown pull-right">
@@ -102,65 +102,30 @@
     <div id="actionLinksContainer" class="container-fluid">
         <div class="navbar-header">
             <div class="pageTitle">
-                <h4>My Vacation Requests</h4>
+                <h4>Vacation Request</h4>
             </div>
         </div>
-        <!-- user button -->
-        <div id="navbar" class="navbar-collapse collapse" ng-include="'partials/actions.html'"></div>
+
+
+
     </div>
 </nav>
 
-<!--Our Table-->
-<div class="container-fluid" id="tableBody">
-    <!--Our Search Bar-->
+
+
+<!--Test NEw Calendar-->
+
+
+
+<div id="calendarView" class="container-fluid">
     <div class="row">
-        <div class="col-sm-6">
-            <div class="input-group" id="searchBar">
-                <input  ng-model="query" type="text" class="form-control" placeholder="Search for..." >
-                <span class="input-group-btn">
-                        <button class="btn btn-default" type="button"><span class="glyphicons glyphicons-search"></span></button>
-                </span>
-            </div>
-        </div>
-        <!--
-        <div class="col-sm-6" id="clearDiv" class= pull-right>
-            <button class="btn btn-default" type="button" id="clearButton">Clear</button>
-        </div>
-        -->
+        <div id='calendar' class="calendar" ng-model="eventSources" calendar="myCalendar1"
+             ui-calendar="uiConfig.calendar"></div>
     </div>
 
-
-
-    <!--Table-->
-    <div class="row">
-        <div class="col-md-12">
-            <table class="table table-hover " id="dataTable">
-                <thead class="thead-default">
-                <tr>
-                    <th>Start</th>
-                    <th>End</th>
-                    <th>Hours</th>
-                    <th>Requested</th>
-                    <th>Status</th>
-                    <th>Comments</th>
-                </tr>
-                </thead>
-                <tbody ng-repeat="x in myVacationRequests | filter:query">
-                <tr >
-                    <td>{{x.startDate}}</td>
-                    <td>{{x.endDate}}</td>
-                    <td>{{x.hoursThisRequest}}</td>
-                    <td>{{x.date}}</td>
-                    <td>{{x.status}}</td>
-                    <td>{{x.Comments}}</td>
-                    <!--<td>This is a test column to see how the table responds when there is a large comment.</td>-->
-                </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <!--We can place our legend in this row?-->
+    <div class="row"></div>
 </div>
-
 
 <footer class="navbar  navbar-fixed-bottom footer">
     <div class="container-fluid">

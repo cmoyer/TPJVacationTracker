@@ -24,10 +24,13 @@
     <script src="FullCalendar/js/fullcalendar.js"></script>
     <link href="FullCalendar/css/fullcalendar.css" rel="stylesheet">
 
+
     <!--Angular-->
     <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.js"></script>
     <script src="angular/angular-resource.js"></script>
     <script src="angular/angular-route.min.js"></script>
+
+    <script src="js/calendar.js"></script>
 
     <!-- GUID generator -->
     <script src="js/angular-uuid2.min.js"></script>
@@ -38,7 +41,6 @@
     <script src="js/support.js"></script>
 
 
-
     <!--Our Stylesheets-->
     <link href="css/style.css" rel="stylesheet">
     <link href="css/select.css" rel="stylesheet">
@@ -46,8 +48,10 @@
     <link href="css/glyphicons.css" rel="stylesheet">
 
     <!--Initialize the calendar-->
-    <script>
+    <script ng-controller="mainCtrl">
         $(document).ready(function() {
+
+
 
             $('#calendar').fullCalendar({
                 header: {
@@ -67,6 +71,7 @@
             });
 
         });
+
     </script>
 
 
@@ -135,7 +140,9 @@
 
 <div id="calendarView" class="container-fluid">
     <div class="row">
-        <div id='calendar'></div>
+       <!--<div id='calendar'></div>-->
+        <div id='calendar' class="calendar" ng-model="eventSources" calendar="myCalendar1"
+             ui-calendar="uiConfig.viewCalendar"></div>
     </div>
 
     <!--We can place our legend in this row?-->
