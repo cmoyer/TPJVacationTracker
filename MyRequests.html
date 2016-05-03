@@ -122,11 +122,6 @@
                 </span>
             </div>
         </div>
-        <!--
-        <div class="col-sm-6" id="clearDiv" class= pull-right>
-            <button class="btn btn-default" type="button" id="clearButton">Clear</button>
-        </div>
-        -->
     </div>
 
 
@@ -146,7 +141,7 @@
                 </tr>
                 </thead>
                 <tbody ng-repeat="x in myVacationRequests | filter:query">
-                <tr >
+                <tr ng-click="openRequest(x.requestID)">
                     <td>{{x.startDate}}</td>
                     <td>{{x.endDate}}</td>
                     <td>{{x.hoursThisRequest}}</td>

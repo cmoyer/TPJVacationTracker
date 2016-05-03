@@ -12,6 +12,7 @@ var getLocksURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/Lo
 var getGroupURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/GroupsREST';
 var sysdefURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/SystemDefaults';
 var vacationProfileURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/VacationProfilesREST';
+var vacationRequestsbyIDURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/VacationRequestsbyIDREST';
 var vacationRequestsURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/VacationRequestsREST';
 var dsMaxCount = 100; // the maximum count for the Domino data services
 
@@ -27,18 +28,17 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid
     $scope.lockedBy = false;
     $scope.lockedByCurrentUser = false;
     $scope.readMode = true;
-
-
-    // support functions
+    $scope.isMobileDevice = false;
     $scope.saveVacationRequest = saveVacationRequest;
     $scope.editVacationRequest = editVacationRequest;
     $scope.getVacationProfile = getVacationProfile;
     $scope.getMyVacationRequests = getMyVacationRequests;
     $scope.getAllVacationRequests = getAllVacationRequests;
     $scope.getAllRequests = getAllRequests;
-
-
-
+    $scope.openRequest = openRequest;
+    $scope.recalculateDates = recalculateDates;
+    $scope.recalculateHours = recalculateHours;
+    var ismobi = navigator.userAgent.match(/Mobi/i);
 
     //============================================================================
     // BEGIN ANGULAR INITIALIZATION
@@ -49,27 +49,27 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid
     
     function initialize(){
         $scope.mainForm = {};
+        $scope.hoursThisRequest = 0;
         $rootScope.vacationRequest = {};
         $rootScope.vacationRequest.hoursThisRequest = 0;
         $rootScope.vacationProfile = {};
         $rootScope.myVacationRequests = {};
         $rootScope.allVacationRequests = {};
+        $rootScope.requestedDates = {};
         $rootScope.group = {};
+        $rootScope.clickedRequest = {};
         $scope.modalResponse = "none";
         $scope.modal = {};
         $scope.modal.buttons = [];
 
-        // //watch for the empNotesName to change
-        // $rootScope.$watch('empNotesName', function(value) {
-        //
-        //     $rootScope.empNotesName = value;
-        //
-        // });
-        //
-        // //watch for the Group to change
-        // $rootScope.$watch('Group', function(value) {
-        //     $rootScope.Group = value;
-        // });
+
+
+        if(ismobi == null){
+            $scope.isMobileDevice = false;
+        } else{
+            $scope.isMobileDevice = true;
+        }
+
 
         // on load of the page, get the information for the currently authenticated user
         getUserData();
@@ -77,8 +77,6 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid
 
         // on load of the page, get the System Defaults data
         getSystemDefaults();
-
-
 
     }
 
@@ -173,7 +171,8 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid
 
 
     function createVacationRequest(){
-       $window.location.href = "requestForm.html";
+        $rootScope.clickedRequest = null;
+        $window.location.href = "requestForm.html";
 
     }
 
@@ -199,23 +198,9 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid
 
 
         // loop through all of the radio buttons on the form and grab the checked values
-        var myForm = $window.document.getElementById('myForm');
-        var myElements = myForm.getElementsByTagName("input");
-        var total = 0;
-        var hrs = 0;
 
-        var selectedDays = [];
-        for (i=0; i<myElements.length; i++){
-            if (myElements[i].checked == true){
-                selectedDays.push(myElements[i]);
-                if (myElements[i].value == "Whole"){
-                    hrs = 8;
-                } else {
-                    hrs = 4;
-                }
-                total += hrs;
-            }
-        }
+
+        var total = recalculateHours();
 
         
         $rootScope.vacationRequest.hoursThisRequest = total;
@@ -240,6 +225,11 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid
             //create the notes backend document
             //get the System Defaults from the Domino database
 
+            // set the request ID
+            if ($rootScope.vacationRequest.requestID == null) {
+                $rootScope.vacationRequest.requestID = "{" + uuid2.newguid() + "}"
+            }
+
             var data = {
                 'empName': $rootScope.vacationRequest.empName,
                 'date': $rootScope.vacationRequest.date,
@@ -249,7 +239,8 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid
                 'empNotesName': $rootScope.vacationRequest.empNotesName,
                 'hoursThisRequest': $rootScope.vacationRequest.hoursThisRequest,
                 'Approvers': $rootScope.vacationRequest.approvers,
-                'Comments': $rootScope.vacationRequest.requestComments
+                'Comments': $rootScope.vacationRequest.requestComments,
+                'requestID': $rootScope.vacationRequest.requestID
                 // 'datesRequested': $rootScope.vacationRequest.datesRequested
             };
 
@@ -407,7 +398,26 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid
     }
 
 
-    
+    function openRequest(id){
+        // alert('opening ' + id);
+        var requestString = vacationRequestsbyIDURL + "?keys=" + id + "&keysexactmatch=true";
+        $http.get(requestString).
+        success(function(data) {
+            $rootScope.clickedRequest = data[0];
+            $window.location.href = "requestForm.html";
+
+
+            //console.log($rootScope);
+        }).
+        error(function(data, status, headers, config) {
+            // log error
+        });
+
+
+    }
+
+
+
     
     // *********************************************
     // Angular Calendar
@@ -426,12 +436,12 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid
     };
     /* event source that contains custom events on the scope */
     $scope.events = [
-        {title: 'All Day Event',start: new Date(y, m, 1)},
-        {title: 'Long Event',start: new Date(y, m, d - 5),end: new Date(y, m, d - 2)},
-        {id: 999,title: 'Repeating Event',start: new Date(y, m, d - 3, 16, 0),allDay: false},
-        {id: 999,title: 'Repeating Event',start: new Date(y, m, d + 4, 16, 0),allDay: false},
-        {title: 'Birthday Party',start: new Date(y, m, d + 1, 19, 0),end: new Date(y, m, d + 1, 22, 30),allDay: false},
-        {title: 'Click for Google',start: new Date(y, m, 28),end: new Date(y, m, 29),url: 'http://google.com/'}
+        // {title: 'All Day Event',start: new Date(y, m, 1)},
+        // {title: 'Long Event',start: new Date(y, m, d - 5),end: new Date(y, m, d - 2)},
+        // {id: 999,title: 'Repeating Event',start: new Date(y, m, d - 3, 16, 0),allDay: false},
+        // {id: 999,title: 'Repeating Event',start: new Date(y, m, d + 4, 16, 0),allDay: false},
+        // {title: 'Birthday Party',start: new Date(y, m, d + 1, 19, 0),end: new Date(y, m, d + 1, 22, 30),allDay: false},
+        // {title: 'Click for Google',start: new Date(y, m, 28),end: new Date(y, m, 29),url: 'http://google.com/'}
     ];
     /* event source that calls a function on every view switch */
     $scope.eventsF = function (start, end, timezone, callback) {
@@ -545,8 +555,13 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid
             eventResize: $scope.alertOnResize,
             eventRender: $scope.eventRender,
 
+
             select: function(start, end){
 
+
+                //reset the form on each new selection
+                resetRadioButtons();
+                $rootScope.vacationRequest.hoursThisRequest = 0;
 
                 //we need to gather all of the days that aren't weekends and store them in an array
                 var dateArray;
@@ -556,6 +571,9 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid
 
                 startDate.setDate(startDate.getDate()+1);
                 dateArray = getDates(startDate, endDate);
+
+                $rootScope.vacationRequest.startDate = startDate;
+                $rootScope.vacationRequest.endDate = endDate;
 
                 //get the weekdays from the dateArray and store them in this array.
                 var vacationDays = [];
@@ -572,31 +590,69 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid
 //                    console.log(vacationDays);
 
                 // Now that we have the dates, dynamically create the form.
-                createDateSelections(vacationDays);
 
+                //lets format the dates..
+                var formattedVacationDays = [];
+                for (var x = 0; x < vacationDays.length; x++){
+                    var formattedDate = dateFormat(vacationDays[x], "fullDate");
+                    formattedVacationDays.push(formattedDate);
+                }
+
+                $rootScope.requestedDates = formattedVacationDays;
+                //recalculateHours();
 
             }
         }
     };
 
-
-
-    // $scope.changeLang = function() {
-    //     if($scope.changeTo === 'Hungarian'){
-    //         $scope.uiConfig.calendar.dayNames = ["Vasárnap", "Hétfő", "Kedd", "Szerda", "Csütörtök", "Péntek", "Szombat"];
-    //         $scope.uiConfig.calendar.dayNamesShort = ["Vas", "Hét", "Kedd", "Sze", "Csüt", "Pén", "Szo"];
-    //         $scope.changeTo= 'English';
-    //     } else {
-    //         $scope.uiConfig.calendar.dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-    //         $scope.uiConfig.calendar.dayNamesShort = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    //         $scope.changeTo = 'Hungarian';
-    //     }
-    // };
     /* event sources array*/
     $scope.eventSources = [$scope.events, $scope.eventSource, $scope.eventsF];
     $scope.eventSources2 = [$scope.calEventsExt, $scope.eventsF, $scope.events];
 
 
 
+    function recalculateDates(){
+        var startDate = $rootScope.vacationRequest.startDate;
+        var endDate = $rootScope.vacationRequest.endDate;
+
+
+        $('#calendar').fullCalendar('select',startDate,endDate);
+    }
+
+
+    function resetRadioButtons(){
+        var myForm = $window.document.getElementById('myForm');
+        var myElements = myForm.getElementsByTagName("input");
+        for (i=0; i<myElements.length; i++){
+            if (myElements[i].checked == true){
+                myElements[i].checked = false;
+            }
+        }
+    }
+
+    function recalculateHours(){
+        var myForm = $window.document.getElementById('myForm');
+        var myElements = myForm.getElementsByTagName("input");
+        var total = 0;
+        var hrs = 0;
+
+        var selectedDays = [];
+        for (i=0; i<myElements.length; i++){
+            if (myElements[i].checked == true){
+                selectedDays.push(myElements[i]);
+                if (myElements[i].value == "Whole"){
+                    hrs = 8;
+                } else {
+                    hrs = 4;
+                }
+                total += hrs;
+            }
+        }
+
+        //return total;
+        $rootScope.vacationRequest.hoursThisRequest = total;
+
+
+    }
 
 }

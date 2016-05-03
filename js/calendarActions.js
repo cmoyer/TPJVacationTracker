@@ -72,8 +72,8 @@ function makeRadioButton(name, value, text, checked) {
     radio.checked = checked;
     radio.className = "calc";
     radio.id = name + "~" + value;
-    //radio.setAttribute("ng-change", "updateSum(foo)");
-    //radio.setAttribute("ng-model", "foo");
+    radio.setAttribute("ng-change", "recalculateHours()");
+    radio.setAttribute("ng-model", "hoursThisRequest");
 
     label.appendChild(radio);
     label.appendChild(document.createTextNode(text));
