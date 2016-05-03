@@ -158,17 +158,20 @@
 
             <form action="#" id="mainform" method="get" name="mainform">
                 <!--<table id="myForm" class="table table-striped table-condensed"></table>-->
-                <table id="myForm" class="table table-hover">
-                    <tr ng-repeat="day in requestedDates">
-                        <td>{{day}}</td>
+                <table id="myForm" class="table table-hover" >
+                    <tr ng-repeat="day in vacationRequest.requestedDates">
+                        <td>{{day.name}}</td>
                         <td>
-                            <label><input type="radio" name="{{day}}" ng-model = "value" value="Whole" ng-change ="recalculateHours()">Whole</label>
+                            <label><input type="radio" name="{{day.name}}" ng-model ="day.value"
+                                          value="Whole" ng-change ="recalculateHours()">Whole</label>
                         </td>
                         <td>
-                            <label><input type="radio" name="{{day}}" ng-model = "value" value="Morning" ng-change ="recalculateHours()"> Morning</label>
+                            <label><input type="radio" name="{{day.name}}" ng-model = "day.value" value="Morning"
+                                          ng-change="recalculateHours()"> Morning</label>
                         </td>
                         <td>
-                            <label><input type="radio" name="{{day}}" ng-model = "value" value="Afternoon" ng-change ="recalculateHours()"> Afternoon</label>
+                            <label><input type="radio" name="{{day.name}}" ng-model = "day.value" value="Afternoon"
+                                          ng-change ="recalculateHours()"> Afternoon</label>
                         </td>
                     </tr>
                 </table>

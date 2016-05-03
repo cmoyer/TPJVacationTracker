@@ -17,7 +17,14 @@ var vacationRequestsURL = domainURL + '/VacationTracker.nsf/api/data/collections
 var dsMaxCount = 100; // the maximum count for the Domino data services
 
 function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid2){
-    
+
+
+
+    //get the uid of the project that the user is attmepting to access
+    $scope.uid = getQueryString("uid");
+
+
+
     // custom functions added to scope
     $scope.createVacationRequest = createVacationRequest;
     $scope.logoutUser = logoutUser;
@@ -35,6 +42,7 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid
     $scope.getMyVacationRequests = getMyVacationRequests;
     $scope.getAllVacationRequests = getAllVacationRequests;
     $scope.getAllRequests = getAllRequests;
+    $scope.getRequest = getRequest;
     $scope.openRequest = openRequest;
     $scope.recalculateDates = recalculateDates;
     $scope.recalculateHours = recalculateHours;
@@ -55,12 +63,17 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid
         $rootScope.vacationProfile = {};
         $rootScope.myVacationRequests = {};
         $rootScope.allVacationRequests = {};
-        $rootScope.requestedDates = {};
+        // $rootScope.vacationRequest.requestedDates = {};
+        $rootScope.vacationRequest.requestedDates = [{}];
+        $rootScope.vacationRequest.requestedDates.shift();
+        
+        $rootScope.Answers = {};
         $rootScope.group = {};
         $rootScope.clickedRequest = {};
         $scope.modalResponse = "none";
         $scope.modal = {};
         $scope.modal.buttons = [];
+       
 
 
 
@@ -77,6 +90,10 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid
 
         // on load of the page, get the System Defaults data
         getSystemDefaults();
+
+        if ($scope.uid != null) {
+            getRequest($scope.uid);
+        }
 
     }
 
@@ -186,27 +203,8 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid
         $rootScope.vacationRequest.empNotesName = "CN=" + $scope.user.username + "/O=TPJ";
 
 
-        var v = $rootScope.vacationRequest;
-        var attr = {
-            "empName": v.empName,
-            "date": v.date,
-            "status": v.status,
-            "empUserName": v.empNotesName
-
-            //"VacationID": p.VacationID
-        };
-
-
-        // loop through all of the radio buttons on the form and grab the checked values
-
-
-        var total = recalculateHours();
-
-        
-        $rootScope.vacationRequest.hoursThisRequest = total;
-        $rootScope.vacationRequest.datesRequested = selectedDays;
         $rootScope.vacationRequest.requestComments = "";
-
+        selectedDays = $rootScope.vacationRequest.requestedDates;
         var length = selectedDays.length;
 
         if (length == 0){
@@ -219,39 +217,44 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid
             $scope.modal.buttons.push(button1);
             $('#myModal').modal('show');
         } else {
-            var startDate = formatDate(selectedDays[0].name);
-            var endDate = formatDate(selectedDays[length-1].name);
-
-            //create the notes backend document
-            //get the System Defaults from the Domino database
 
             // set the request ID
             if ($rootScope.vacationRequest.requestID == null) {
                 $rootScope.vacationRequest.requestID = "{" + uuid2.newguid() + "}"
             }
 
+
             var data = {
                 'empName': $rootScope.vacationRequest.empName,
                 'date': $rootScope.vacationRequest.date,
-                'startDate': startDate,
-                'endDate': endDate,
+                'startDate': $rootScope.vacationRequest.startDate,
+                'endDate': $rootScope.vacationRequest.endDate,
                 'status': $rootScope.vacationRequest.status,
                 'empNotesName': $rootScope.vacationRequest.empNotesName,
                 'hoursThisRequest': $rootScope.vacationRequest.hoursThisRequest,
                 'Approvers': $rootScope.vacationRequest.approvers,
                 'Comments': $rootScope.vacationRequest.requestComments,
                 'requestID': $rootScope.vacationRequest.requestID
-                // 'datesRequested': $rootScope.vacationRequest.datesRequested
+                //'requestedDates': $rootScope.vacationRequest.requestedDates
             };
 
             console.log(data);
 
-            $http.post(dataPOST + "?form=Vacation%20Request", data).
-            then(function (response) {
-                console.log(response)
-                $window.location.href = "myRequests.html";
-            });
+            // $http.post(dataPOST + "?form=Vacation%20Request", data).
+            // then(function (response) {
+            //     console.log(response)
+            //     $window.location.href = "myRequests.html";
+            // });
 
+            //create an array of dates~values to pass to notes since it doesn't like storing an array of objects
+            for (var i=0; i < $rootScope.vacationRequest.requestedDates.length; i++){
+                var tmpData = {
+                    'empName': $rootScope.vacationRequest.empName,
+                    'name': $rootScope.vacationRequest.requestedDates[i].name,
+                    'value': $rootScope.vacationRequest.requestedDates[i].value,
+                    'lookupKey': $rootScope.vacationRequest.requestID
+                };
+            }
 
 
 
@@ -398,22 +401,57 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid
     }
 
 
-    function openRequest(id){
-        // alert('opening ' + id);
+    function getRequest(id){
         var requestString = vacationRequestsbyIDURL + "?keys=" + id + "&keysexactmatch=true";
         $http.get(requestString).
         success(function(data) {
             $rootScope.clickedRequest = data[0];
-            $window.location.href = "requestForm.html";
+
+            $rootScope.vacationRequest.empName = data[0].empName;
+            $rootScope.vacationRequest.startDate = new Date(data[0].startDate);
+            $rootScope.vacationRequest.endDate = new Date(data[0].endDate);
+            $rootScope.vacationRequest.status = data[0].status;
+            $rootScope.vacationRequest.empNotesName = data[0].empNotesName;
+            $rootScope.vacationRequest.hoursThisRequest = data[0].hoursThisRequest;
+            $rootScope.vacationRequest.approvers = data[0].approvers;
+            $rootScope.vacationRequest.requestComments = data[0].requestComments;
+            $rootScope.vacationRequest.requestID = data[0].requestID;
+
+            var dateArray;
+            dateArray = getDates($rootScope.vacationRequest.startDate, $rootScope.vacationRequest.endDate);
+            //get the weekdays from the dateArray and store them in this array.
+            var vacationDays = [];
+            var arrayLength = dateArray.length;
+            for (var i = 0; i < arrayLength; i++){
+                var selectedDate = dateArray[i];
+                var day = selectedDate.getDay();
+                if (day != 0 && day != 6) {
+                    vacationDays.push(selectedDate);
+                }
+            }
 
 
-            //console.log($rootScope);
+            // Now that we have the dates, dynamically create the form.
+
+            //lets format the dates..
+            var formattedVacationDays = [];
+            for (var x = 0; x < vacationDays.length; x++){
+                var formattedDate = dateFormat(vacationDays[x], "fullDate");
+                formattedVacationDays.push(formattedDate);
+            }
+
+            $rootScope.vacationRequest.requestedDates = formattedVacationDays;
+
         }).
         error(function(data, status, headers, config) {
             // log error
         });
 
 
+    }
+
+    function openRequest(id){
+        $window.location.href = "requestForm.html?open&uid=" + id;
     }
 
 
@@ -560,7 +598,9 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid
 
 
                 //reset the form on each new selection
-                resetRadioButtons();
+
+                $rootScope.vacationRequest.requestedDates = [{}];
+                $rootScope.vacationRequest.requestedDates.shift();
                 $rootScope.vacationRequest.hoursThisRequest = 0;
 
                 //we need to gather all of the days that aren't weekends and store them in an array
@@ -598,8 +638,17 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid
                     formattedVacationDays.push(formattedDate);
                 }
 
-                $rootScope.requestedDates = formattedVacationDays;
+                //for each date, add to our array of objects
+                for(var j = 0; j < formattedVacationDays.length; j++){
+                    var tmpObject = {
+                        "name": formattedVacationDays[j],
+                        "value": ""
+                    }
+                    $rootScope.vacationRequest.requestedDates.push(tmpObject);
+                }
+                // $rootScope.vacationRequest.requestedDates = formattedVacationDays;
                 //recalculateHours();
+                console.log($rootScope);
 
             }
         }
