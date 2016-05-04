@@ -163,7 +163,8 @@
                         <td>{{day.name}}</td>
                         <td>
                             <label><input type="radio" name="{{day.name}}" ng-model ="day.value"
-                                          value="Whole" ng-change ="recalculateHours()">Whole</label>
+                                          value="Whole" ng-change ="recalculateHours()" checked = "checked">Whole
+                            </label>
                         </td>
                         <td>
                             <label><input type="radio" name="{{day.name}}" ng-model = "day.value" value="Morning"

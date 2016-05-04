@@ -16,18 +16,10 @@
             </li>
 
             <li>
-                <a id="statusButton" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href="#" ng-click="">
-                    <span class="glyphicons glyphicons-refresh actionIcon" aria-hidden="true"></span> Recalculate <span
-                        class="caret"></span>
+                <a id="statusButton" aria-haspopup="true"
+                   aria-expanded="false" href="#" ng-click="recalculateDates()">
+                    <span class="glyphicons glyphicons-refresh actionIcon" aria-hidden="true"></span> Recalculate
                 </a>
-                <ul class="dropdown-menu">
-                    <li>
-                        <a href ng-click="recalculateHours()">Hours</a>
-                    </li>
-                    <li>
-                        <a href ng-click="recalculateDates()">Dates</a>
-                    </li>
-                </ul>
             </li>
         </ul>
     </div>

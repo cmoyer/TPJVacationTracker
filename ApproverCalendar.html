@@ -45,29 +45,7 @@
     <link href="css/glyphicons-bootstrap.css" rel="stylesheet">
     <link href="css/glyphicons.css" rel="stylesheet">
 
-    <!--Initialize the calendar-->
-    <script>
-        $(document).ready(function() {
 
-            $('#calendar').fullCalendar({
-                header: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'month,basicWeek,basicDay'
-                },
-                editable: false,
-                selectable:false,
-                unselectAuto:false,
-                selectHelper:true,
-                eventLimit: true, // allow "more" link when too many events
-                businessHours: true,
-                //weekends: false,
-
-
-            });
-
-        });
-    </script>
 
 
 </head>
@@ -76,7 +54,7 @@
 
 
 <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
-    <div class="container-fluid">
+    <div class="container-fluid" id="navLinksContainer">
 
 
         <!-- Collect the nav links, forms, and other content for toggling -->

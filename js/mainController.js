@@ -8,13 +8,16 @@ var domainURL = '//www.pjdick.com';
 var dataURL = domainURL + '/VacationTracker.nsf';
 var recordLockURL = domainURL + '/VacationTracker.nsf/api/data/documents';
 var dataPOST = domainURL + '/VacationTracker.nsf/api/data/documents';
+var dataPUT = domainURL + '/VacationTracker.nsf/api/data/documents/unid/';
 var getLocksURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/LockedRecords';
 var getGroupURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/GroupsREST';
 var sysdefURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/SystemDefaults';
 var vacationProfileURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/VacationProfilesREST';
 var vacationRequestsbyIDURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/VacationRequestsbyIDREST';
+var vacationDaysbyIDURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/VacationDaysbyIDREST';
 var vacationRequestsURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/VacationRequestsREST';
 var dsMaxCount = 100; // the maximum count for the Domino data services
+var unidStr = "@unid";
 
 function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid2){
 
@@ -63,10 +66,11 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid
         $rootScope.vacationProfile = {};
         $rootScope.myVacationRequests = {};
         $rootScope.allVacationRequests = {};
+        $rootScope.vacationRequest.requestComments = "";
         // $rootScope.vacationRequest.requestedDates = {};
         $rootScope.vacationRequest.requestedDates = [{}];
         $rootScope.vacationRequest.requestedDates.shift();
-        
+        $rootScope.vacationRequest.dayUNID = [];
         $rootScope.Answers = {};
         $rootScope.group = {};
         $rootScope.clickedRequest = {};
@@ -116,10 +120,9 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid
         success(function(data) {
             //console.log(data);
             $scope.user = data;
-            if ($rootScope.vacationRequest.preparedBy == null){
-                $rootScope.vacationRequest.preparedBy = data.username;
-                $rootScope.vacationRequest.date = currentDate();
-                $rootScope.vacationRequest.empNotesName = "CN=" + $scope.user.username + "/O=TPJ";
+            if ($rootScope.empNotesName == null){
+                $rootScope.empName = $scope.user.username;
+                $rootScope.empNotesName = "CN=" + $scope.user.username + "/O=TPJ";
             }
             getVacationProfile();
             getMyVacationRequests();
@@ -197,14 +200,25 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid
 
 
         //getUserData();
-        $rootScope.vacationRequest.empName = $scope.user.username;
+        // recalculateHours();
+
         $rootScope.vacationRequest.date = currentDate();
         $rootScope.vacationRequest.status = "New";
-        $rootScope.vacationRequest.empNotesName = "CN=" + $scope.user.username + "/O=TPJ";
 
 
-        $rootScope.vacationRequest.requestComments = "";
-        selectedDays = $rootScope.vacationRequest.requestedDates;
+        if($rootScope.vacationRequest.empName == null){
+            $rootScope.vacationRequest.empName = $rootScope.empName;
+        }
+
+        if($rootScope.vacationRequest.empNotesName == null){
+            $rootScope.vacationRequest.empNotesName = $rootScope.empNotesName;
+        }
+
+
+
+
+        //$rootScope.vacationRequest.requestComments = "";
+        var selectedDays = $rootScope.vacationRequest.requestedDates;
         var length = selectedDays.length;
 
         if (length == 0){
@@ -223,14 +237,13 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid
                 $rootScope.vacationRequest.requestID = "{" + uuid2.newguid() + "}"
             }
 
-
             var data = {
                 'empName': $rootScope.vacationRequest.empName,
                 'date': $rootScope.vacationRequest.date,
-                'startDate': $rootScope.vacationRequest.startDate,
-                'endDate': $rootScope.vacationRequest.endDate,
-                'status': $rootScope.vacationRequest.status,
-                'empNotesName': $rootScope.vacationRequest.empNotesName,
+                'startDate': $rootScope.vacationRequest.startDate.format("mm/dd/yyyy"),
+                'endDate': $rootScope.vacationRequest.endDate.format("mm/dd/yyyy"),
+                'STATUS': $rootScope.vacationRequest.status,
+                'EMPNOTESNAME': $rootScope.vacationRequest.empNotesName,
                 'hoursThisRequest': $rootScope.vacationRequest.hoursThisRequest,
                 'Approvers': $rootScope.vacationRequest.approvers,
                 'Comments': $rootScope.vacationRequest.requestComments,
@@ -238,25 +251,47 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid
                 //'requestedDates': $rootScope.vacationRequest.requestedDates
             };
 
+
+
             console.log(data);
+            if($rootScope.vacationRequest.unid == null) {
+                $http.post(dataPOST + "?form=Vacation%20Request", data).then(function (response) {
+                    console.log(response)
+                });
+            } else {
 
-            // $http.post(dataPOST + "?form=Vacation%20Request", data).
-            // then(function (response) {
-            //     console.log(response)
-            //     $window.location.href = "myRequests.html";
-            // });
+                // delete the existing days because the user may have selected something completely different
+                for (var j=0; j < $rootScope.vacationRequest.dayUNID.length; j++){
+                    $http.delete(dataPUT + $rootScope.vacationRequest.dayUNID[j]).then(function (response){
+                        console.log(response);
+                    });
+                }
 
-            //create an array of dates~values to pass to notes since it doesn't like storing an array of objects
+                $http.put(dataPUT + $rootScope.vacationRequest.unid + "?form=Vacation%20Request", data).then(function (response){
+                    console.log(response)
+                });
+            }
+
+            console.log($rootScope.vacationRequest);
+
+            //vacation day documents
             for (var i=0; i < $rootScope.vacationRequest.requestedDates.length; i++){
-                var tmpData = {
-                    'empName': $rootScope.vacationRequest.empName,
-                    'name': $rootScope.vacationRequest.requestedDates[i].name,
-                    'value': $rootScope.vacationRequest.requestedDates[i].value,
-                    'lookupKey': $rootScope.vacationRequest.requestID
-                };
+                    var tmpData = {
+                        'empName': $rootScope.vacationRequest.empName,
+                        'name': $rootScope.vacationRequest.requestedDates[i].name,
+                        'value': $rootScope.vacationRequest.requestedDates[i].value,
+                        'lookupKey': $rootScope.vacationRequest.requestID
+                    };
+
+                $http.post(dataPOST + "?form=Vacation%20Day", tmpData).then(function (response) {
+                    console.log(response)
+                });
+
             }
 
 
+
+            // $window.location.href = "myRequests.html";
 
             // var newEvent = new Object();
             //
@@ -267,6 +302,9 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid
             // newEvent.allDay = false;
             // $('#calendar').fullCalendar( 'renderEvent', newEvent );
         }
+
+
+
             
     }
 
@@ -342,7 +380,7 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid
 
 
     function getVacationProfile(){
-        var u = $rootScope.vacationRequest.empNotesName;
+        var u = $rootScope.empNotesName;
         var requestString = vacationProfileURL + "?keys=" + u + "&keysexactmatch=true";
         $http.get(requestString).
         success(function(data) {
@@ -358,7 +396,7 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid
 
 
     function getMyVacationRequests(){
-        var u = $rootScope.vacationRequest.empNotesName;
+        var u = $rootScope.empNotesName;
         var requestString = vacationRequestsURL + "?keys=" + u + "&keysexactmatch=true";
         $http.get(requestString).
         success(function(data) {
@@ -405,17 +443,17 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid
         var requestString = vacationRequestsbyIDURL + "?keys=" + id + "&keysexactmatch=true";
         $http.get(requestString).
         success(function(data) {
-            $rootScope.clickedRequest = data[0];
-
+            console.log(data);
             $rootScope.vacationRequest.empName = data[0].empName;
             $rootScope.vacationRequest.startDate = new Date(data[0].startDate);
             $rootScope.vacationRequest.endDate = new Date(data[0].endDate);
-            $rootScope.vacationRequest.status = data[0].status;
-            $rootScope.vacationRequest.empNotesName = data[0].empNotesName;
+            $rootScope.vacationRequest.status = data[0].STATUS;
+            $rootScope.vacationRequest.empNotesName = data[0].EMPNOTESNAME;
             $rootScope.vacationRequest.hoursThisRequest = data[0].hoursThisRequest;
             $rootScope.vacationRequest.approvers = data[0].approvers;
             $rootScope.vacationRequest.requestComments = data[0].requestComments;
             $rootScope.vacationRequest.requestID = data[0].requestID;
+            $rootScope.vacationRequest.unid = data[0][unidStr];
 
             var dateArray;
             dateArray = getDates($rootScope.vacationRequest.startDate, $rootScope.vacationRequest.endDate);
@@ -440,14 +478,37 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid
                 formattedVacationDays.push(formattedDate);
             }
 
-            $rootScope.vacationRequest.requestedDates = formattedVacationDays;
+
+            var vacationDaysRequestString = vacationDaysbyIDURL + "?keys=" + $rootScope.vacationRequest.requestID + "&keysexactmatch=true";
+
+            $http.get(vacationDaysRequestString).
+                success(function(data){
+
+                $rootScope.vacationRequest.requestedDates.shift();
+                for(var i = 0; i < data.length; i++){
+                    var tmpData = {
+                        'empName': data[i].empName,
+                        'name': data[i].name,
+                        'value': data[i].value,
+                        'lookupKey': data[i].lookupKey,
+                        'unid': data[i][unidStr]
+                    };
+                    $rootScope.vacationRequest.requestedDates.push(tmpData);
+                    $rootScope.vacationRequest.dayUNID.push(data[i][unidStr]);
+                }
+
+            }).
+                error(function(data,status,headers,config){
+
+            });
+
 
         }).
         error(function(data, status, headers, config) {
             // log error
         });
 
-
+        console.log($rootScope);
     }
 
     function openRequest(id){
@@ -642,13 +703,11 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid
                 for(var j = 0; j < formattedVacationDays.length; j++){
                     var tmpObject = {
                         "name": formattedVacationDays[j],
-                        "value": ""
+                        "value": "Whole"
                     }
                     $rootScope.vacationRequest.requestedDates.push(tmpObject);
                 }
-                // $rootScope.vacationRequest.requestedDates = formattedVacationDays;
-                //recalculateHours();
-                console.log($rootScope);
+                $rootScope.vacationRequest.hoursThisRequest = $rootScope.vacationRequest.requestedDates.length * 8;
 
             }
         }
@@ -664,8 +723,11 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid
         var startDate = $rootScope.vacationRequest.startDate;
         var endDate = $rootScope.vacationRequest.endDate;
 
+        var tmpStart = new Date(startDate.getDate());
+        tmpStart.setDate(tmpStart.getDate()-1);
 
-        $('#calendar').fullCalendar('select',startDate,endDate);
+
+        $('#calendar').fullCalendar('select',tmpStart,endDate);
     }
 
 
