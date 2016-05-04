@@ -3,7 +3,7 @@
  */
 
 var main = angular.module('main', ['ui.calendar','ngRoute','angularUUID2'])
-    .controller('mainCtrl',['$rootScope','$scope', '$location', '$http', '$compile', '$window', 'uuid2', MainCtrl]);
+    .controller('mainCtrl',['$rootScope','$scope', '$location', '$http', '$compile', '$timeout','$window', 'uuid2', MainCtrl]);
 var domainURL = '//www.pjdick.com';
 var dataURL = domainURL + '/VacationTracker.nsf';
 var recordLockURL = domainURL + '/VacationTracker.nsf/api/data/documents';
@@ -19,7 +19,7 @@ var vacationRequestsURL = domainURL + '/VacationTracker.nsf/api/data/collections
 var dsMaxCount = 100; // the maximum count for the Domino data services
 var unidStr = "@unid";
 
-function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid2){
+function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $window, uuid2){
 
 
 
@@ -290,8 +290,25 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid
             }
 
 
+            $timeout(gotoMyRequests, 500);
 
+
+            //changing the window is causing a werid issue with our vacation day documents.
+            // SO DON'T DO IT
             // $window.location.href = "myRequests.html";
+
+
+
+
+            // $scope.modal.title = "Vacation Request Saved";
+            // $scope.modal.body = "Your Vacation Request has been successfully saved.";
+            // $scope.modal.buttons = [];
+            // var button2 = {};
+            // button2.label = "OK";
+            // button2.callback = "";
+            // $scope.modal.buttons.push(button2);
+            // $('#myModal').modal('show');
+
 
             // var newEvent = new Object();
             //
@@ -307,6 +324,7 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid
 
             
     }
+
 
     //TODO: edit vacation request
     function editVacationRequest(){
@@ -764,6 +782,10 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $window, uuid
         $rootScope.vacationRequest.hoursThisRequest = total;
 
 
+    }
+
+    function gotoMyRequests(){
+        $window.location.href = "myRequests.html";
     }
 
 }
