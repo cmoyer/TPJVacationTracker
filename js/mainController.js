@@ -14,6 +14,7 @@ var getGroupURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/Gr
 var sysdefURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/SystemDefaults';
 var vacationProfileURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/VacationProfilesREST';
 var vacationRequestsbyIDURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/VacationRequestsbyIDREST';
+var vacationRequestsbyGroupURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/VacationRequestsbyGroupREST';
 var vacationDaysbyIDURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/VacationDaysbyIDREST';
 var vacationRequestsURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/VacationRequestsREST';
 var dsMaxCount = 100; // the maximum count for the Domino data services
@@ -43,20 +44,23 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
     $scope.editVacationRequest = editVacationRequest;
     $scope.getVacationProfile = getVacationProfile;
     $scope.getMyVacationRequests = getMyVacationRequests;
-    $scope.getAllVacationRequests = getAllVacationRequests;
-    $scope.getAllRequests = getAllRequests;
+    $scope.getVacationRequestsByGroup = getVacationRequestsByGroup;
     $scope.getRequest = getRequest;
     $scope.openRequest = openRequest;
     $scope.recalculateDates = recalculateDates;
     $scope.recalculateHours = recalculateHours;
     var ismobi = navigator.userAgent.match(/Mobi/i);
+    // $scope.events = [];
 
     //============================================================================
     // BEGIN ANGULAR INITIALIZATION
     //============================================================================
-    
+
     // initialize our variables
     initialize();
+
+
+
     
     function initialize(){
         $scope.mainForm = {};
@@ -65,14 +69,14 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
         $rootScope.vacationRequest.hoursThisRequest = 0;
         $rootScope.vacationProfile = {};
         $rootScope.myVacationRequests = {};
-        $rootScope.allVacationRequests = {};
+        $rootScope.groupVacationRequests = {};
         $rootScope.vacationRequest.requestComments = "";
-        // $rootScope.vacationRequest.requestedDates = {};
         $rootScope.vacationRequest.requestedDates = [{}];
         $rootScope.vacationRequest.requestedDates.shift();
         $rootScope.vacationRequest.dayUNID = [];
         $rootScope.Answers = {};
         $rootScope.group = {};
+        $scope.events = [];
         $rootScope.clickedRequest = {};
         $scope.modalResponse = "none";
         $scope.modal = {};
@@ -86,6 +90,23 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
         } else{
             $scope.isMobileDevice = true;
         }
+
+
+
+        $rootScope.$watch('groupVacationRequests', function(value) {
+            if (value != null){
+                // $scope.events = $rootScope.groupVacationRequests;
+                $scope.eventSources = [$scope.events];
+                // alert('this fired');
+                $('#calendar').fullCalendar( 'removeEventSource', $scope.eventSources);
+                $('#calendar').fullCalendar( 'addEventSource', $scope.eventSources[0]);
+                $('#calendar').fullCalendar( 'refetchEvents' );
+                console.log($scope);
+            }
+        });
+
+
+
 
 
         // on load of the page, get the information for the currently authenticated user
@@ -126,7 +147,9 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
             }
             getVacationProfile();
             getMyVacationRequests();
-            getAllVacationRequests();
+            // alert($rootScope.groupName);
+            // getVacationRequestsByGroup($rootScope.groupName);
+            // getAllVacationRequests();
 
         }).
         error(function(data, status, headers, config) {
@@ -199,9 +222,6 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
     function saveVacationRequest(){
 
 
-        //getUserData();
-        // recalculateHours();
-
         $rootScope.vacationRequest.date = currentDate();
         $rootScope.vacationRequest.status = "New";
 
@@ -212,6 +232,10 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
 
         if($rootScope.vacationRequest.empNotesName == null){
             $rootScope.vacationRequest.empNotesName = $rootScope.empNotesName;
+        }
+
+        if($rootScope.vacationRequest.groupName == null){
+            $rootScope.vacationRequest.groupName = $rootScope.groupName;
         }
 
 
@@ -246,6 +270,7 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
                 'EMPNOTESNAME': $rootScope.vacationRequest.empNotesName,
                 'hoursThisRequest': $rootScope.vacationRequest.hoursThisRequest,
                 'Approvers': $rootScope.vacationRequest.approvers,
+                'groupName': $rootScope.vacationRequest.groupName,
                 'Comments': $rootScope.vacationRequest.requestComments,
                 'requestID': $rootScope.vacationRequest.requestID
                 //'requestedDates': $rootScope.vacationRequest.requestedDates
@@ -289,35 +314,12 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
 
             }
 
-
+            // we need this timeout to allow the requests to finish, otherwise we lose vacation day documents
             $timeout(gotoMyRequests, 500);
 
 
-            //changing the window is causing a werid issue with our vacation day documents.
-            // SO DON'T DO IT
-            // $window.location.href = "myRequests.html";
 
 
-
-
-            // $scope.modal.title = "Vacation Request Saved";
-            // $scope.modal.body = "Your Vacation Request has been successfully saved.";
-            // $scope.modal.buttons = [];
-            // var button2 = {};
-            // button2.label = "OK";
-            // button2.callback = "";
-            // $scope.modal.buttons.push(button2);
-            // $('#myModal').modal('show');
-
-
-            // var newEvent = new Object();
-            //
-            // newEvent.title = $rootScope.vacationRequest.empName;
-            // newEvent.start = new Date(selectedDays[0].name);
-            // var tmpEnd = new Date(selectedDays[length-1].name);
-            // newEvent.end = tmpEnd.setDate(tmpEnd.getDate() + 1);
-            // newEvent.allDay = false;
-            // $('#calendar').fullCalendar( 'renderEvent', newEvent );
         }
 
 
@@ -403,7 +405,9 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
         $http.get(requestString).
         success(function(data) {
             $rootScope.vacationProfile = data;
+            $rootScope.groupName = data[0].Group;
             getUserGroup();
+            getVacationRequestsByGroup(data[0].Group);
 
 
         }).
@@ -425,15 +429,37 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
         });
     }
 
-    function getAllVacationRequests(){
-        $http.get(vacationRequestsURL).
+
+    function getVacationRequestsByGroup(group){
+
+
+        var requestString = vacationRequestsbyGroupURL + "?keys=" + group + "&keysexactmatch=true";
+        $http.get(requestString).
         success(function(data) {
-            $rootScope.allVacationRequests = data;
-            // console.log($rootScope.allVacationRequests);
+            $rootScope.groupVacationRequests = data;
+
+            //todo: update scope.events here
+            var eventArray = [{}];
+            eventArray.shift();
+            for(var i = 0; i < data.length; i++){
+                var newEvent = {};
+                newEvent.title = data[i].empName;
+                newEvent.start = new Date(data[i].startDate);
+                newEvent.end = new Date(data[i].endDate);
+                // newEvent.end = tmpEnd.setDate(tmpEnd.getDate() + 1);
+                newEvent.allDay = true;
+                // $('#calendar').fullCalendar( 'renderEvent', newEvent );
+                eventArray.push(newEvent);
+            }
+            // console.log("length: " + eventArray.length);
+            $scope.events = eventArray;
+
+
         }).
         error(function(data, status, headers, config) {
             // log error
         });
+
     }
 
 
@@ -443,17 +469,15 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
         var requestString = getGroupURL + "?keys=" + groupName + "&keysexactmatch=true";
         $http.get(requestString).
         success(function(data) {
-            $rootScope.group = data;
-            $rootScope.vacationRequest.approvers = $rootScope.group[0].Approvers;
+           $rootScope.group = data;
+           $rootScope.vacationRequest.approvers = $rootScope.group[0].Approvers;
+
+
         }).
         error(function(data, status, headers, config) {
             // log error
         });
 
-    }
-
-    function getAllRequests(){
-        return $rootScope.allVacationRequests;
     }
 
 
@@ -470,6 +494,7 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
             $rootScope.vacationRequest.hoursThisRequest = data[0].hoursThisRequest;
             $rootScope.vacationRequest.approvers = data[0].approvers;
             $rootScope.vacationRequest.requestComments = data[0].requestComments;
+            $rootScope.vacationRequest.groupName = data[0].GroupName;
             $rootScope.vacationRequest.requestID = data[0].requestID;
             $rootScope.vacationRequest.unid = data[0][unidStr];
 
@@ -534,32 +559,116 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
     }
 
 
+    function initializeCalendarEvents(){
+        // var eventArray = [
+        //         {title: 'All Day Event',start: new Date(y, m, 1)},
+        //         {title: 'Long Event',start: new Date(y, m, d - 5),end: new Date(y, m, d - 2)},
+        //         {id: 999,title: 'Repeating Event',start: new Date(y, m, d - 3, 16, 0),allDay: false},
+        //         {id: 999,title: 'Repeating Event',start: new Date(y, m, d + 4, 16, 0),allDay: false},
+        //         {title: 'Birthday Party',start: new Date(y, m, d + 1, 19, 0),end: new Date(y, m, d + 1, 22, 30),allDay: false},
+        //         {title: 'Click for Google',start: new Date(y, m, 28),end: new Date(y, m, 29),url: 'http://google.com/'}
+        // ];
+        var eventArray = [{}];
 
-    
-    // *********************************************
-    // Angular Calendar
-    // *********************************************
+        alert($rootScope.empName);
+
+        return eventArray;
+
+    }
+    //todo: old add calendar
+    // function addCalendarEvents(){
+    //     var eventArray = [{}];
+    //     console.log($rootScope);
+    //     for(var i = 0; i < $rootScope.groupVacationRequests.length; i++){
+    //         var newEvent = {};
+    //         newEvent.title = $rootScope.groupVacationRequests[i].empName;
+    //         newEvent.start = new Date($rootScope.groupVacationRequests[i].startDate);
+    //         var tmpEnd = new Date($rootScope.groupVacationRequests[i].endDate);
+    //         newEvent.end = tmpEnd.setDate(tmpEnd.getDate() + 1);
+    //         newEvent.allDay = false;
+    //         // $('#calendar').fullCalendar( 'renderEvent', newEvent );
+    //         eventArray.push(newEvent);
+    //     }
+    //     // console.log(eventArray);
+    //     return eventArray;
+    //     // $('#calendar').fullCalendar( 'addEventSource', eventArray );
+    //     // $('#calendar').fullCalendar('rerenderEvents');
+    // }
+
+    function recalculateDates(){
+        var startDate = $rootScope.vacationRequest.startDate;
+        var endDate = $rootScope.vacationRequest.endDate;
+
+        var tmpStart = new Date(startDate.getDate());
+        tmpStart.setDate(tmpStart.getDate()-1);
+
+
+        $('#calendar').fullCalendar('select',tmpStart,endDate);
+    }
+
+
+    function recalculateHours(){
+        var myForm = $window.document.getElementById('myForm');
+        var myElements = myForm.getElementsByTagName("input");
+        var total = 0;
+        var hrs = 0;
+
+        var selectedDays = [];
+        for (i=0; i<myElements.length; i++){
+            if (myElements[i].checked == true){
+                selectedDays.push(myElements[i]);
+                if (myElements[i].value == "Whole"){
+                    hrs = 8;
+                } else {
+                    hrs = 4;
+                }
+                total += hrs;
+            }
+        }
+
+        //return total;
+        $rootScope.vacationRequest.hoursThisRequest = total;
+
+
+    }
+
+    function gotoMyRequests(){
+        $window.location.href = "myRequests.html";
+    }
+
+
+
+
+
+
+//     // *********************************************
+//     // Angular Calendar
+//     // *********************************************
     var date = new Date();
     var d = date.getDate();
     var m = date.getMonth();
     var y = date.getFullYear();
-
-    $scope.changeTo = 'Hungarian';
-    /* event source that pulls from google.com */
     $scope.eventSource = {
         // url: "http://www.google.com/calendar/feeds/usa__en%40holiday.calendar.google.com/public/basic",
         // className: 'gcal-event',           // an option!
         // currentTimezone: 'America/Chicago' // an option!
     };
+
+    //WE ARE SETTING THIS ABOVE!!!
     /* event source that contains custom events on the scope */
-    $scope.events = [
-        // {title: 'All Day Event',start: new Date(y, m, 1)},
-        // {title: 'Long Event',start: new Date(y, m, d - 5),end: new Date(y, m, d - 2)},
-        // {id: 999,title: 'Repeating Event',start: new Date(y, m, d - 3, 16, 0),allDay: false},
-        // {id: 999,title: 'Repeating Event',start: new Date(y, m, d + 4, 16, 0),allDay: false},
-        // {title: 'Birthday Party',start: new Date(y, m, d + 1, 19, 0),end: new Date(y, m, d + 1, 22, 30),allDay: false},
-        // {title: 'Click for Google',start: new Date(y, m, 28),end: new Date(y, m, 29),url: 'http://google.com/'}
-    ];
+    // $scope.events = [
+    //     {title: 'All Day Event',start: new Date(y, m, 1)},
+    //     {title: 'Long Event',start: new Date(y, m, d - 5),end: new Date(y, m, d - 2)},
+    //     {id: 999,title: 'Repeating Event',start: new Date(y, m, d - 3, 16, 0),allDay: false},
+    //     {id: 999,title: 'Repeating Event',start: new Date(y, m, d + 4, 16, 0),allDay: false},
+    //     {title: 'Birthday Party',start: new Date(y, m, d + 1, 19, 0),end: new Date(y, m, d + 1, 22, 30),allDay: false},
+    //     {title: 'Click for Google',start: new Date(y, m, 28),end: new Date(y, m, 29),url: 'http://google.com/'}
+    // ];
+
+
+
+
+
     /* event source that calls a function on every view switch */
     $scope.eventsF = function (start, end, timezone, callback) {
         var s = new Date(start).getTime() / 1000;
@@ -654,6 +763,23 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
             eventResize: $scope.alertOnResize,
             eventRender: $scope.eventRender
         },
+        myGroupCalendar:{
+            editable: false,
+            selectable: false,
+            unselectAuto: false,
+            selectHelper: true,
+            eventLimit: true,
+            businessHours: true,
+            header:{
+                left: 'prev,next today',
+                center: 'title',
+                right: 'month,basicWeek,basicDay'
+            },
+            eventClick: $scope.alertOnEventClick,
+            eventDrop: $scope.alertOnDrop,
+            eventResize: $scope.alertOnResize,
+            eventRender: $scope.eventRender
+        },
 
         formCalendar:{
             editable: false,
@@ -731,61 +857,14 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
         }
     };
 
-    /* event sources array*/
+    angular.element(document).ready(function () {
+
+
+    });
+    //
     $scope.eventSources = [$scope.events, $scope.eventSource, $scope.eventsF];
     $scope.eventSources2 = [$scope.calEventsExt, $scope.eventsF, $scope.events];
 
 
-
-    function recalculateDates(){
-        var startDate = $rootScope.vacationRequest.startDate;
-        var endDate = $rootScope.vacationRequest.endDate;
-
-        var tmpStart = new Date(startDate.getDate());
-        tmpStart.setDate(tmpStart.getDate()-1);
-
-
-        $('#calendar').fullCalendar('select',tmpStart,endDate);
-    }
-
-
-    function resetRadioButtons(){
-        var myForm = $window.document.getElementById('myForm');
-        var myElements = myForm.getElementsByTagName("input");
-        for (i=0; i<myElements.length; i++){
-            if (myElements[i].checked == true){
-                myElements[i].checked = false;
-            }
-        }
-    }
-
-    function recalculateHours(){
-        var myForm = $window.document.getElementById('myForm');
-        var myElements = myForm.getElementsByTagName("input");
-        var total = 0;
-        var hrs = 0;
-
-        var selectedDays = [];
-        for (i=0; i<myElements.length; i++){
-            if (myElements[i].checked == true){
-                selectedDays.push(myElements[i]);
-                if (myElements[i].value == "Whole"){
-                    hrs = 8;
-                } else {
-                    hrs = 4;
-                }
-                total += hrs;
-            }
-        }
-
-        //return total;
-        $rootScope.vacationRequest.hoursThisRequest = total;
-
-
-    }
-
-    function gotoMyRequests(){
-        $window.location.href = "myRequests.html";
-    }
 
 }
