@@ -104,15 +104,16 @@
                 <h4>Approver Calendar</h4>
             </div>
         </div>
-
-
-
+        <!-- user button -->
+        <div id="navbar" class="navbar-collapse collapse" ng-include="'partials/actions.html'"></div>
     </div>
 </nav>
 
 <div id="calendarView" class="container-fluid">
     <div class="row">
-        <div id='calendar'></div>
+        <!--<div id='calendar'></div>-->
+        <div id='calendar' class="calendar" ng-model="eventSources" calendar="myCalendar1"
+             ui-calendar="uiConfig.approverCalendar"></div>
     </div>
 
     <!--We can place our legend in this row?-->

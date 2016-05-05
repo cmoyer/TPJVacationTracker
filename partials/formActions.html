@@ -19,7 +19,7 @@
                 </a>
             </li>
 
-            <li ng-show="isNew()">
+            <li ng-show="isNew() && isSaved()">
                 <a href="#" ng-click="submitVacationRequest()">
                     <span class="glyphicons glyphicons-inbox-in" aria-hidden="true"></span> Submit
                     Vacation
@@ -43,7 +43,7 @@
                 </a>
             </li>
 
-            <li ng-hide="isNew() || isTaken() || isCancelled()">
+            <li ng-hide="isNew() || isTaken() || isCanceled()">
                 <a href="#" ng-click="cancelVacationRequest()">
                     <span class="glyphicons glyphicons-ban-circle" aria-hidden="true"></span> Cancel
                     Vacation

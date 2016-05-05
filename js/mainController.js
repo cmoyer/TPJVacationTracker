@@ -58,10 +58,11 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
 
     // Hide/When functions
     $scope.isNew = isNew;
+    $scope.isSaved = isSaved;
     $scope.isSubmitted = isSubmitted;
     $scope.isTaken = isTaken;
     $scope.isApprover = isApprover;
-    $scope.isCancelled = isCancelled;
+    $scope.isCanceled = isCanceled;
 
     // Saving and Status Changes of Requests
     $scope.saveVacationRequest = saveVacationRequest;
@@ -344,11 +345,34 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
             }
     }
     
+    function calculateHoursForOverage(arrDates){
+        // check to see which years are included in this request
+
+        // then check to see if the user has a vacation profile for each of those years
+        // if not, throw a flag and don't continue.
+
+        // if they have profiles for each, get a value of hours requested for each year
+
+        // compare each year to the respective Vacation Profile hours remaining value
+
+        // if there is an overage on either document, prompt the user and ask if they would still like to save
+
+        //if they confirm, return true, else, return false
+    }
 
     //TODO: check user's vacation profile hours vs hours requested.
     function submitVacationRequest(){
         var readyToSubmit = $rootScope.vacationRequest.unid;
         if (readyToSubmit != null) {
+
+            // var startDate = $rootScope.vacationRequest.startDate;
+            // var endDate = $rootScope.vacationRequest.endDate;
+            //
+            // var arrDates = getDates(startDate,endDate);
+            //
+            // var okToProceed calculateHoursForOverage(arrDates);
+
+
             var data = {
                 'STATUS': "Submitted"
             };
@@ -371,12 +395,12 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
         }
     }
 
-    //TODO: update Vacation Profile Hours here
+    //TODO: update Vacation Profile Hours here cancel
     function cancelVacationRequest(){
-        promptForComments("Reasons for Cancelling Request", "cancel");
+        promptForComments("Reasons for Canceling Request", "cancel");
     }
 
-    //TODO: update Vacation Profile Hours here
+    //TODO: update Vacation Profile Hours here approve
     function approveVacationRequest(){
         var data = {
             'STATUS': "Approved"
@@ -391,7 +415,7 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
 
     }
 
-    //TODO: update Vacation Profile Hours here
+    //TODO: update Vacation Profile Hours here rejected
     function rejectVacationRequest(){
         promptForComments("Reasons for Rejecting Request", "reject");
     }
@@ -415,50 +439,59 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
         if ($scope.comments != null) {
 
             var currUser = $rootScope.empName;
+            var currDateTime = currentDateTime();
             var combinedComments;
             if ($rootScope.vacationRequest.requestComments != "") {
                 var currComments = $rootScope.vacationRequest.requestComments;
                 var newComments = "\n" + currUser + ": " + $scope.comments;
                 combinedComments = currComments.concat(newComments);
             } else {
-                combinedComments = currUser + ": " + $scope.comments;
+                combinedComments = currUser + " " + currDateTime + ": " + $scope.comments;
             }
+
+
+            var type = $scope.modal.type;
+            var data;
+
+            switch (type) {
+                case "cancel":
+
+                    data = {
+                        'STATUS': "Canceled",
+                        'requestComments': combinedComments
+                    };
+                    break;
+
+                case "reject":
+
+                    data = {
+                        'STATUS': "Rejected",
+                        'requestComments': combinedComments
+                    };
+                    break;
+
+                default:
+
+                    break;
+            }
+            $http.patch(dataPUT + $rootScope.vacationRequest.unid + "?form=Vacation%20Request", data).then(function (response) {
+                console.log(response);
+            });
+
+            $('#commentsModal').modal('hide');
+            gotoMyRequests();
         }
-
-
-        var type = $scope.modal.type;
-        var data;
-
-        switch (type) {
-            case "cancel":
-
-                data = {
-                    'STATUS': "Cancelled",
-                    'requestComments': combinedComments
-                };
-                break;
-
-            case "reject":
-
-                data = {
-                    'STATUS': "Rejected",
-                    'requestComments': combinedComments
-                };
-                break;
-
-            default:
-
-                break;
-        }
-        $http.patch(dataPUT + $rootScope.vacationRequest.unid + "?form=Vacation%20Request", data).then(function (response) {
-            console.log(response);
-        });
-
-        $('#commentsModal').modal('hide');
-        gotoMyRequests();
-
     }
-    
+
+    function isSaved(){
+        var saved = $rootScope.vacationRequest.unid;
+        if(saved != null){
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     function isSubmitted(){
         var currStatus = $rootScope.vacationRequest.status;
 
@@ -487,9 +520,9 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
         }
     }
 
-    function isCancelled(){
+    function isCanceled(){
         var currStatus = $rootScope.vacationRequest.status;
-        if (currStatus == "Cancelled") {
+        if (currStatus == "Canceled") {
             return true;
         } else {
             return false;
@@ -592,8 +625,8 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
     }
 
     //TODO: Update the hours on a vacation profile
-    function updateVacationProfile(hoursSubmitted, hoursApproved, hoursRejected, hoursCancelled){
-
+    function updateVacationProfile(hoursSubmitted, hoursApproved, hoursRejected, hourscanceled){
+        
     }
 
 
@@ -985,7 +1018,7 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
     };
     /* config object */
     $scope.uiConfig = {
-        viewCalendar:{
+        approverCalendar:{
             editable: false,
             selectable: false,
             unselectAuto: false,
@@ -997,12 +1030,12 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
                 center: 'title',
                 right: 'month,basicWeek,basicDay'
             },
-            eventClick: $scope.consoleOnEventClick,
+            eventClick: $scope.alertOnEventClick,
             eventDrop: $scope.alertOnDrop,
             eventResize: $scope.alertOnResize,
             eventRender: $scope.eventRender
         },
-        myGroupCalendar:{
+        groupCalendar:{
             editable: false,
             selectable: false,
             unselectAuto: false,
@@ -1014,7 +1047,7 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
                 center: 'title',
                 right: 'month,basicWeek,basicDay'
             },
-            eventClick: $scope.consoleOnEventClick,
+            eventClick: $scope.alertOnEventClick,
             eventDrop: $scope.alertOnDrop,
             eventResize: $scope.alertOnResize,
             eventRender: $scope.eventRender
@@ -1031,7 +1064,7 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
                 center: 'title',
                 right: 'month'
             },
-            eventClick: $scope.alertOnEventClick,
+            //eventClick: $scope.alertOnEventClick,
             eventDrop: $scope.alertOnDrop,
             eventResize: $scope.alertOnResize,
             eventRender: $scope.eventRender
@@ -1048,7 +1081,7 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
                 center: 'title',
                 right: 'month'
             },
-            eventClick: $scope.alertOnEventClick,
+            //eventClick: $scope.alertOnEventClick,
             eventDrop: $scope.alertOnDrop,
             eventResize: $scope.alertOnResize,
             eventRender: $scope.eventRender,
