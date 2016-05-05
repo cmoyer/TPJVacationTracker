@@ -7,7 +7,11 @@
 <div id="actionButtons">
     <div class="pull-right">
         <ul class="nav navbar-nav navbar-right action-bar">
-            <li>
+            <li id="statusButton">
+                {{vacationRequest.status}}
+            </li>
+
+            <li ng-show="isNew()">
                 <a href="#" ng-click="saveVacationRequest()">
                     <span class="glyphicons glyphicons-floppy-save" aria-hidden="true"></span> Save
                     Vacation
@@ -15,10 +19,41 @@
                 </a>
             </li>
 
-            <li>
-                <a id="statusButton" aria-haspopup="true"
-                   aria-expanded="false" href="#" ng-click="recalculateDates()">
-                    <span class="glyphicons glyphicons-refresh actionIcon" aria-hidden="true"></span> Recalculate
+            <li ng-show="isNew()">
+                <a href="#" ng-click="submitVacationRequest()">
+                    <span class="glyphicons glyphicons-inbox-in" aria-hidden="true"></span> Submit
+                    Vacation
+                    Request
+                </a>
+            </li>
+
+            <li ng-show="isSubmitted() && isApprover()">
+                <a href="#" ng-click="approveVacationRequest()">
+                    <span class="glyphicons glyphicons-ok-circle" aria-hidden="true"></span> Approve
+                    Vacation
+                    Request
+                </a>
+            </li>
+
+            <li ng-show="isSubmitted() && isApprover()">
+                <a href="#" ng-click="rejectVacationRequest()">
+                    <span class="glyphicons glyphicons-remove-circle" aria-hidden="true"></span> Reject
+                    Vacation
+                    Request
+                </a>
+            </li>
+
+            <li ng-hide="isNew() || isTaken()">
+                <a href="#" ng-click="cancelVacationRequest()">
+                    <span class="glyphicons glyphicons-ban-circle" aria-hidden="true"></span> Cancel
+                    Vacation
+                    Request
+                </a>
+            </li>
+
+            <li ng-show="isNew()">
+                <a href="#" ng-click="recalculateDates()" ng-show="isMobileDevice">
+                    <span class="glyphicons glyphicons-refresh" aria-hidden="true"></span> Recalculate
                 </a>
             </li>
         </ul>

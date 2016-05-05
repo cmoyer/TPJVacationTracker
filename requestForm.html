@@ -163,16 +163,17 @@
                         <td>{{day.name}}</td>
                         <td>
                             <label><input type="radio" name="{{day.name}}" ng-model ="day.value"
-                                          value="Whole" ng-change ="recalculateHours()" checked = "checked">Whole
+                                          value="Whole" ng-change ="recalculateHours()" checked = "checked"
+                                          ng-disabled="!isNew()">Whole
                             </label>
                         </td>
                         <td>
                             <label><input type="radio" name="{{day.name}}" ng-model = "day.value" value="Morning"
-                                          ng-change="recalculateHours()"> Morning</label>
+                                          ng-change="recalculateHours()" ng-disabled="!isNew()"> Morning</label>
                         </td>
                         <td>
                             <label><input type="radio" name="{{day.name}}" ng-model = "day.value" value="Afternoon"
-                                          ng-change ="recalculateHours()"> Afternoon</label>
+                                          ng-change ="recalculateHours()" ng-disabled="!isNew()"> Afternoon</label>
                         </td>
                     </tr>
                 </table>
@@ -264,6 +265,35 @@
             </div>
         </div>
     </div>
+</div>
+
+
+<!-- Comments Modal -->
+<div class="modal fade" id="commentsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <form>
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" ng-show="false"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel2">{{modal.title}}</h4>
+                </div>
+                <div class="modal-body">
+                    <textarea class="form-control" id="comments" ng-model="comments" name="comments"
+                           placeholder="Enter Comments.." required></textarea>
+
+                </div>
+                <div class="modal-footer">
+                    <span ng-repeat="button in modal.buttons">
+                        <!--<button type="button" class="btn btn-default" data-dismiss="modal"-->
+                                <!--ng-click="addComments()">{{button-->
+                            <!--.label}}</button>-->
+                        <input type="submit" value="SUBMIT" class="btn btn-default" ng-click="addComments()"/>
+
+                    </span>
+                </div>
+            </div>
+        </div>
+    </form>
 </div>
 <!-- Bootstrap core JavaScript
  ================================================== -->

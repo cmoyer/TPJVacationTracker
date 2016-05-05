@@ -41,6 +41,7 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
     $scope.readMode = true;
     $scope.isMobileDevice = false;
     $scope.saveVacationRequest = saveVacationRequest;
+    $scope.submitVacationRequest = submitVacationRequest;
     $scope.editVacationRequest = editVacationRequest;
     $scope.getVacationProfile = getVacationProfile;
     $scope.getMyVacationRequests = getMyVacationRequests;
@@ -49,8 +50,15 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
     $scope.openRequest = openRequest;
     $scope.recalculateDates = recalculateDates;
     $scope.recalculateHours = recalculateHours;
+    $scope.addComments = addComments;
+    $scope.promptForComments = promptForComments;
     var ismobi = navigator.userAgent.match(/Mobi/i);
-    // $scope.events = [];
+
+    // Hide/When functions
+    $scope.isNew = isNew;
+    $scope.isSubmitted = isSubmitted;
+    $scope.isTaken = isTaken;
+    $scope.isApprover = isApprover;
 
     //============================================================================
     // BEGIN ANGULAR INITIALIZATION
@@ -222,109 +230,97 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
     function saveVacationRequest(){
 
 
-        $rootScope.vacationRequest.date = currentDate();
-        $rootScope.vacationRequest.status = "New";
+            $rootScope.vacationRequest.date = currentDate();
+            $rootScope.vacationRequest.status = "New";
 
 
-        if($rootScope.vacationRequest.empName == null){
-            $rootScope.vacationRequest.empName = $rootScope.empName;
-        }
-
-        if($rootScope.vacationRequest.empNotesName == null){
-            $rootScope.vacationRequest.empNotesName = $rootScope.empNotesName;
-        }
-
-        if($rootScope.vacationRequest.groupName == null){
-            $rootScope.vacationRequest.groupName = $rootScope.groupName;
-        }
-
-
-
-
-        //$rootScope.vacationRequest.requestComments = "";
-        var selectedDays = $rootScope.vacationRequest.requestedDates;
-        var length = selectedDays.length;
-
-        if (length == 0){
-            $scope.modal.title = "Not Enough Information to Save";
-            $scope.modal.body = "You must select at least one day on the calendar before saving.";
-            $scope.modal.buttons = [];
-            var button1 = {};
-            button1.label = "OK";
-            button1.callback = "";
-            $scope.modal.buttons.push(button1);
-            $('#myModal').modal('show');
-        } else {
-
-            // set the request ID
-            if ($rootScope.vacationRequest.requestID == null) {
-                $rootScope.vacationRequest.requestID = "{" + uuid2.newguid() + "}"
+            if($rootScope.vacationRequest.empName == null){
+                $rootScope.vacationRequest.empName = $rootScope.empName;
             }
 
-            var data = {
-                'empName': $rootScope.vacationRequest.empName,
-                'date': $rootScope.vacationRequest.date,
-                'startDate': $rootScope.vacationRequest.startDate.format("mm/dd/yyyy"),
-                'endDate': $rootScope.vacationRequest.endDate.format("mm/dd/yyyy"),
-                'STATUS': $rootScope.vacationRequest.status,
-                'EMPNOTESNAME': $rootScope.vacationRequest.empNotesName,
-                'hoursThisRequest': $rootScope.vacationRequest.hoursThisRequest,
-                'Approvers': $rootScope.vacationRequest.approvers,
-                'groupName': $rootScope.vacationRequest.groupName,
-                'Comments': $rootScope.vacationRequest.requestComments,
-                'requestID': $rootScope.vacationRequest.requestID
-                //'requestedDates': $rootScope.vacationRequest.requestedDates
-            };
+            if($rootScope.vacationRequest.empNotesName == null){
+                $rootScope.vacationRequest.empNotesName = $rootScope.empNotesName;
+            }
 
+            if($rootScope.vacationRequest.groupName == null){
+                $rootScope.vacationRequest.groupName = $rootScope.groupName;
+            }
+            //$rootScope.vacationRequest.requestComments = "";
+            var selectedDays = $rootScope.vacationRequest.requestedDates;
+            var length = selectedDays.length;
 
-
-            console.log(data);
-            if($rootScope.vacationRequest.unid == null) {
-                $http.post(dataPOST + "?form=Vacation%20Request", data).then(function (response) {
-                    console.log(response)
-                });
+            if (length == 0){
+                $scope.modal.title = "Not Enough Information to Save";
+                $scope.modal.body = "You must select at least one day on the calendar before saving.";
+                $scope.modal.buttons = [];
+                var button1 = {};
+                button1.label = "OK";
+                button1.callback = "";
+                $scope.modal.buttons.push(button1);
+                $('#myModal').modal('show');
             } else {
 
-                // delete the existing days because the user may have selected something completely different
-                for (var j=0; j < $rootScope.vacationRequest.dayUNID.length; j++){
-                    $http.delete(dataPUT + $rootScope.vacationRequest.dayUNID[j]).then(function (response){
-                        console.log(response);
+                // set the request ID
+                if ($rootScope.vacationRequest.requestID == null) {
+                    $rootScope.vacationRequest.requestID = "{" + uuid2.newguid() + "}"
+                }
+
+                var data = {
+                    'empName': $rootScope.vacationRequest.empName,
+                    'date': $rootScope.vacationRequest.date,
+                    'startDate': $rootScope.vacationRequest.startDate.format("mm/dd/yyyy"),
+                    'endDate': $rootScope.vacationRequest.endDate.format("mm/dd/yyyy"),
+                    'STATUS': $rootScope.vacationRequest.status,
+                    'EMPNOTESNAME': $rootScope.vacationRequest.empNotesName,
+                    'hoursThisRequest': $rootScope.vacationRequest.hoursThisRequest,
+                    'Approvers': $rootScope.vacationRequest.approvers,
+                    'groupName': $rootScope.vacationRequest.groupName,
+                    'Comments': $rootScope.vacationRequest.requestComments,
+                    'requestID': $rootScope.vacationRequest.requestID
+                    //'requestedDates': $rootScope.vacationRequest.requestedDates
+                };
+
+
+
+                console.log(data);
+                if($rootScope.vacationRequest.unid == null) {
+                    $http.post(dataPOST + "?form=Vacation%20Request", data).then(function (response) {
+                        console.log(response)
+                    });
+                } else {
+
+                    // delete the existing days because the user may have selected something completely different
+                    for (var j=0; j < $rootScope.vacationRequest.dayUNID.length; j++){
+                        $http.delete(dataPUT + $rootScope.vacationRequest.dayUNID[j]).then(function (response){
+                            console.log(response);
+                        });
+                    }
+
+                    $http.put(dataPUT + $rootScope.vacationRequest.unid + "?form=Vacation%20Request", data).then(function (response){
+                        console.log(response)
                     });
                 }
 
-                $http.put(dataPUT + $rootScope.vacationRequest.unid + "?form=Vacation%20Request", data).then(function (response){
-                    console.log(response)
-                });
+                console.log($rootScope.vacationRequest);
+
+                //vacation day documents
+                for (var i=0; i < $rootScope.vacationRequest.requestedDates.length; i++){
+                        var tmpData = {
+                            'empName': $rootScope.vacationRequest.empName,
+                            'name': $rootScope.vacationRequest.requestedDates[i].name,
+                            'value': $rootScope.vacationRequest.requestedDates[i].value,
+                            'lookupKey': $rootScope.vacationRequest.requestID
+                        };
+
+                    $http.post(dataPOST + "?form=Vacation%20Day", tmpData).then(function (response) {
+                        console.log(response)
+                    });
+
+                }
+
+                // we need this timeout to allow the requests to finish, otherwise we lose vacation day documents
+                $timeout(gotoMyRequests, 500);
             }
-
-            console.log($rootScope.vacationRequest);
-
-            //vacation day documents
-            for (var i=0; i < $rootScope.vacationRequest.requestedDates.length; i++){
-                    var tmpData = {
-                        'empName': $rootScope.vacationRequest.empName,
-                        'name': $rootScope.vacationRequest.requestedDates[i].name,
-                        'value': $rootScope.vacationRequest.requestedDates[i].value,
-                        'lookupKey': $rootScope.vacationRequest.requestID
-                    };
-
-                $http.post(dataPOST + "?form=Vacation%20Day", tmpData).then(function (response) {
-                    console.log(response)
-                });
-
-            }
-
-            // we need this timeout to allow the requests to finish, otherwise we lose vacation day documents
-            $timeout(gotoMyRequests, 500);
-
-
-
-
-        }
-
-
-
-            
     }
 
 
@@ -333,13 +329,148 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
 
     }
 
-    //TODO: submit vacation request
-    function submitVacationRequest(){
 
+    function submitVacationRequest(){
+        var readyToSubmit = $rootScope.vacationRequest.unid;
+        if (readyToSubmit != null) {
+            var data = {
+                'STATUS': "Submitted"
+            };
+
+
+            $http.patch(dataPUT + $rootScope.vacationRequest.unid + "?form=Vacation%20Request", data).then(function (response) {
+                console.log(response);
+            });
+
+            gotoMyRequests();
+        } else {
+            $scope.modal.title = "Unable to Submit";
+            $scope.modal.body = "You need to save the Vacation Request before you submit it.";
+            $scope.modal.buttons = [];
+            var button1 = {};
+            button1.label = "OK";
+            button1.callback = "";
+            $scope.modal.buttons.push(button1);
+            $('#myModal').modal('show');
+        }
     }
 
     //TODO: cancel vacation request
     function cancelVacationRequest(){
+        promptForComments("Reasons for Canceling Request");
+        var data = {
+            'STATUS': "Canceled",
+            'requestComments': $rootScope.vacationRequest.requestComments
+        };
+
+
+        $http.patch(dataPUT + $rootScope.vacationRequest.unid + "?form=Vacation%20Request", data).then(function (response) {
+            console.log(response);
+        });
+
+        gotoMyRequests();
+    }
+
+    //TODO: approve vacation request
+    function approveVacationRequest(){
+        var data = {
+            'STATUS': "Approved"
+        };
+
+
+        $http.patch(dataPUT + $rootScope.vacationRequest.unid + "?form=Vacation%20Request", data).then(function (response) {
+            console.log(response);
+        });
+
+        gotoMyRequests();
+    }
+
+    //TODO: reject vacation request
+    function rejectVacationRequest(){
+        promptForComments("Reasons for Rejecting Request");
+        var data = {
+            'STATUS': "Rejected",
+            'requestComments': $rootScope.vacationRequest.requestComments
+        };
+
+
+        $http.patch(dataPUT + $rootScope.vacationRequest.unid + "?form=Vacation%20Request", data).then(function (response) {
+            console.log(response);
+        });
+
+        gotoMyRequests();
+    }
+    
+    function promptForComments(title){
+        $scope.modal.title = title;
+        //$scope.modal.body = "You need to save the Vacation Request before you submit it.";
+        $scope.modal.buttons = [];
+        var button1 = {};
+        button1.label = "OK";
+        button1.callback = "";
+        $scope.modal.buttons.push(button1);
+        $('#commentsModal').modal('show');
+    }
+
+
+    function addComments() {
+        if ($scope.comments != null) {
+            $('#commentsModal').modal('hide');
+            var currUser = $rootScope.empName;
+            if ($rootScope.vacationRequest.requestComments != null) {
+                var currComments = $rootScope.vacationRequest.requestComments;
+                var newComments = "\n" + currUser + ": " + $scope.comments;
+                $rootScope.vacationRequest.requestComments = currComments.concat(newComments);
+            } else {
+                $rootScope.vacationRequest.requestComments = currUser + ": " + $scope.comments;
+            }
+        }
+    }
+    
+    function isSubmitted(){
+        var currStatus = $rootScope.vacationRequest.status;
+
+        if (currStatus == "Submitted") {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    function isNew(){
+        var currStatus = $rootScope.vacationRequest.status;
+        if (currStatus == "New" || currStatus == null) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    function isTaken(){
+        var currStatus = $rootScope.vacationRequest.status;
+        if (currStatus == "Taken") {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    function isApprover(){
+        var currUser = $rootScope.empNotesName;
+        if($rootScope.vacationRequest.approvers.length > 1){
+            for (var i=0; i < $rootScope.vacationRequest.approvers.length; i++){
+               if($rootScope.vacationRequest.approvers[i] == currUser){
+                   return true;
+               }
+            }
+            return false;
+        } else{
+            if ($rootScope.vacationRequest.approvers == currUser){
+                return true;
+            } else {
+                return false;
+            }
+        }
 
     }
 
@@ -437,16 +568,15 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
         $http.get(requestString).
         success(function(data) {
             $rootScope.groupVacationRequests = data;
-
-            //todo: update scope.events here
+            
             var eventArray = [{}];
             eventArray.shift();
             for(var i = 0; i < data.length; i++){
                 var newEvent = {};
                 newEvent.title = data[i].empName;
                 newEvent.start = new Date(data[i].startDate);
-                newEvent.end = new Date(data[i].endDate);
-                // newEvent.end = tmpEnd.setDate(tmpEnd.getDate() + 1);
+                var tmpEnd = new Date(data[i].endDate);
+                newEvent.end = tmpEnd.setDate(tmpEnd.getDate() + 1);
                 newEvent.allDay = true;
                 // $('#calendar').fullCalendar( 'renderEvent', newEvent );
                 eventArray.push(newEvent);
@@ -559,51 +689,54 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
     }
 
 
-    function initializeCalendarEvents(){
-        // var eventArray = [
-        //         {title: 'All Day Event',start: new Date(y, m, 1)},
-        //         {title: 'Long Event',start: new Date(y, m, d - 5),end: new Date(y, m, d - 2)},
-        //         {id: 999,title: 'Repeating Event',start: new Date(y, m, d - 3, 16, 0),allDay: false},
-        //         {id: 999,title: 'Repeating Event',start: new Date(y, m, d + 4, 16, 0),allDay: false},
-        //         {title: 'Birthday Party',start: new Date(y, m, d + 1, 19, 0),end: new Date(y, m, d + 1, 22, 30),allDay: false},
-        //         {title: 'Click for Google',start: new Date(y, m, 28),end: new Date(y, m, 29),url: 'http://google.com/'}
-        // ];
-        var eventArray = [{}];
-
-        alert($rootScope.empName);
-
-        return eventArray;
-
-    }
-    //todo: old add calendar
-    // function addCalendarEvents(){
-    //     var eventArray = [{}];
-    //     console.log($rootScope);
-    //     for(var i = 0; i < $rootScope.groupVacationRequests.length; i++){
-    //         var newEvent = {};
-    //         newEvent.title = $rootScope.groupVacationRequests[i].empName;
-    //         newEvent.start = new Date($rootScope.groupVacationRequests[i].startDate);
-    //         var tmpEnd = new Date($rootScope.groupVacationRequests[i].endDate);
-    //         newEvent.end = tmpEnd.setDate(tmpEnd.getDate() + 1);
-    //         newEvent.allDay = false;
-    //         // $('#calendar').fullCalendar( 'renderEvent', newEvent );
-    //         eventArray.push(newEvent);
-    //     }
-    //     // console.log(eventArray);
-    //     return eventArray;
-    //     // $('#calendar').fullCalendar( 'addEventSource', eventArray );
-    //     // $('#calendar').fullCalendar('rerenderEvents');
-    // }
 
     function recalculateDates(){
-        var startDate = $rootScope.vacationRequest.startDate;
-        var endDate = $rootScope.vacationRequest.endDate;
 
-        var tmpStart = new Date(startDate.getDate());
-        tmpStart.setDate(tmpStart.getDate()-1);
+        if(isRequestValid() == true) {
+            $rootScope.vacationRequest.requestedDates = [{}];
+            $rootScope.vacationRequest.requestedDates.shift();
+            $rootScope.vacationRequest.hoursThisRequest = 0;
+
+            //we need to gather all of the days that aren't weekends and store them in an array
+            var dateArray;
+            var startDate = $rootScope.vacationRequest.startDate;
+            var endDate = $rootScope.vacationRequest.endDate;
+            dateArray = getDates(startDate, endDate);
+
+            $rootScope.vacationRequest.startDate = startDate;
+            $rootScope.vacationRequest.endDate = endDate;
 
 
-        $('#calendar').fullCalendar('select',tmpStart,endDate);
+            //get the weekdays from the dateArray and store them in this array.
+            var vacationDays = [];
+            var arrayLength = dateArray.length;
+            for (var i = 0; i < arrayLength; i++) {
+                var selectedDate = dateArray[i];
+                var day = selectedDate.getDay();
+                if (day != 0 && day != 6) {
+                    vacationDays.push(selectedDate);
+                }
+            }
+
+            // Now that we have the dates, dynamically create the form.
+
+            //lets format the dates..
+            var formattedVacationDays = [];
+            for (var x = 0; x < vacationDays.length; x++) {
+                var formattedDate = dateFormat(vacationDays[x], "fullDate");
+                formattedVacationDays.push(formattedDate);
+            }
+
+            //for each date, add to our array of objects
+            for (var j = 0; j < formattedVacationDays.length; j++) {
+                var tmpObject = {
+                    "name": formattedVacationDays[j],
+                    "value": "Whole"
+                }
+                $rootScope.vacationRequest.requestedDates.push(tmpObject);
+            }
+            $rootScope.vacationRequest.hoursThisRequest = $rootScope.vacationRequest.requestedDates.length * 8;
+        }
     }
 
 
@@ -637,6 +770,70 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
     }
 
 
+    function isRequestValid(){
+        var startDate = $rootScope.vacationRequest.startDate;
+        var endDate = $rootScope.vacationRequest.endDate;
+
+        if (startDate == null){
+            $scope.modal.title = "Field Validation Error";
+            $scope.modal.body = "The Start Date cannot be blank.";
+            $scope.modal.buttons = [];
+            var button1 = {};
+            button1.label = "OK";
+            button1.callback = "";
+            $scope.modal.buttons.push(button1);
+            $('#myModal').modal('show');
+            return false;
+        } else if (endDate == null){
+            $scope.modal.title = "Field Validation Error";
+            $scope.modal.body = "The End Date cannot be blank.";
+            $scope.modal.buttons = [];
+            var button1 = {};
+            button1.label = "OK";
+            button1.callback = "";
+            $scope.modal.buttons.push(button1);
+            $('#myModal').modal('show');
+            return false;
+        } else if (startDate > endDate) {
+            $scope.modal.title = "Field Validation Error";
+            $scope.modal.body = "The Start Date cannot come after the End Date.";
+            $scope.modal.buttons = [];
+            var button1 = {};
+            button1.label = "OK";
+            button1.callback = "";
+            $scope.modal.buttons.push(button1);
+            $('#myModal').modal('show');
+            return false;
+        } else {
+            return true;
+        }
+
+    }
+
+
+    function isReadyToSubmit(requestID){
+        //get the request to see if it has a UNID - AKA: has it been saved first
+        var requestString = vacationRequestsbyIDURL + "?keys=" + requestID + "&keysexactmatch=true";
+        $http.get(requestString).
+        success(function(data) {
+            console.log(data);
+            // $rootScope.vacationRequest.unid = data[0][unidStr];
+            var tmpUNID = data[0][unidStr];
+            if (tmpUNID != null){
+                  return true;
+            } else {
+                   return false;
+            }
+        }).
+        error(function(data, status, headers, config) {
+            // log error
+            console.log(data, status, headers, config);
+            console.log("ERROR");
+            return false;
+        });
+
+        console.log("WE SHOULD NEVER GET HERE");
+    }
 
 
 
@@ -654,20 +851,6 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
         // currentTimezone: 'America/Chicago' // an option!
     };
 
-    //WE ARE SETTING THIS ABOVE!!!
-    /* event source that contains custom events on the scope */
-    // $scope.events = [
-    //     {title: 'All Day Event',start: new Date(y, m, 1)},
-    //     {title: 'Long Event',start: new Date(y, m, d - 5),end: new Date(y, m, d - 2)},
-    //     {id: 999,title: 'Repeating Event',start: new Date(y, m, d - 3, 16, 0),allDay: false},
-    //     {id: 999,title: 'Repeating Event',start: new Date(y, m, d + 4, 16, 0),allDay: false},
-    //     {title: 'Birthday Party',start: new Date(y, m, d + 1, 19, 0),end: new Date(y, m, d + 1, 22, 30),allDay: false},
-    //     {title: 'Click for Google',start: new Date(y, m, 28),end: new Date(y, m, 29),url: 'http://google.com/'}
-    // ];
-
-
-
-
 
     /* event source that calls a function on every view switch */
     $scope.eventsF = function (start, end, timezone, callback) {
@@ -678,19 +861,14 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
         callback(events);
     };
 
-    // $scope.calEventsExt = {
-    //     color: '#f00',
-    //     textColor: 'yellow',
-    //     events: [
-    //         {type:'party',title: 'Lunch',start: new Date(y, m, d, 12, 0),end: new Date(y, m, d, 14, 0),allDay: false},
-    //         {type:'party',title: 'Lunch 2',start: new Date(y, m, d, 12, 0),end: new Date(y, m, d, 14, 0),allDay: false},
-    //         {type:'party',title: 'Click for Google',start: new Date(y, m, 28),end: new Date(y, m, 29),url: 'http://google.com/'}
-    //     ]
-    // };
     /* alert on eventClick */
     $scope.alertOnEventClick = function( date, jsEvent, view){
         $scope.alertMessage = (date.title + ' was clicked ');
         alert($scope.alertMessage);
+    };
+
+    $scope.consoleOnEventClick = function( date, jsEvent, view){
+        console.log(date);
     };
     /* alert on Drop */
     $scope.alertOnDrop = function(event, delta, revertFunc, jsEvent, ui, view){
@@ -758,7 +936,7 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
                 center: 'title',
                 right: 'month,basicWeek,basicDay'
             },
-            eventClick: $scope.alertOnEventClick,
+            eventClick: $scope.consoleOnEventClick,
             eventDrop: $scope.alertOnDrop,
             eventResize: $scope.alertOnResize,
             eventRender: $scope.eventRender
@@ -775,7 +953,7 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
                 center: 'title',
                 right: 'month,basicWeek,basicDay'
             },
-            eventClick: $scope.alertOnEventClick,
+            eventClick: $scope.consoleOnEventClick,
             eventDrop: $scope.alertOnDrop,
             eventResize: $scope.alertOnResize,
             eventRender: $scope.eventRender
@@ -820,6 +998,8 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
                 $rootScope.vacationRequest.startDate = startDate;
                 $rootScope.vacationRequest.endDate = endDate;
 
+
+
                 //get the weekdays from the dateArray and store them in this array.
                 var vacationDays = [];
                 var arrayLength = dateArray.length;
@@ -857,10 +1037,7 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
         }
     };
 
-    angular.element(document).ready(function () {
 
-
-    });
     //
     $scope.eventSources = [$scope.events, $scope.eventSource, $scope.eventsF];
     $scope.eventSources2 = [$scope.calEventsExt, $scope.eventsF, $scope.events];

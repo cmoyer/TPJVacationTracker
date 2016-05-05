@@ -474,6 +474,16 @@ nav.navbar-default {
 
 .pageTitle {
     margin: 20px 0 0 0;
+    max-width: 200px;
+
+}
+
+.pageTitle h4 {
+    max-width: 200px;
+}
+
+#actionLinksContainer .navbar-header{
+    max-width: 250px;
 }
 
 .pageTitle p {
@@ -822,6 +832,9 @@ li.status {
 
 #statusButton {
     color: #fbb040 !important;
+    font-size: 1.5em;
+    padding-top: 17px;
+    padding-right: 10px;
 }
 
 .actionIcon {
