@@ -137,6 +137,7 @@
             <table class="table table-hover " id="dataTable">
                 <thead class="thead-default">
                 <tr>
+                    <th>Name</th>
                     <th>Start</th>
                     <th>End</th>
                     <th>Hours</th>
@@ -145,14 +146,15 @@
                     <th>Comments</th>
                 </tr>
                 </thead>
-                <tbody ng-repeat="x in myVacationRequests | filter:query">
-                <tr >
+                <tbody ng-repeat="x in myVacationRequestsToApprove | filter:query">
+                <tr ng-click="openRequest(x.requestID)">
+                    <td>{{x.empName}}</td>
                     <td>{{x.startDate}}</td>
                     <td>{{x.endDate}}</td>
                     <td>{{x.hoursThisRequest}}</td>
                     <td>{{x.date}}</td>
                     <td>{{x.status}}</td>
-                    <td>{{x.Comments}}</td>
+                    <td><pre>{{x.requestComments}}</pre></td>
                     <!--<td>This is a test column to see how the table responds when there is a large comment.</td>-->
                 </tr>
                 </tbody>

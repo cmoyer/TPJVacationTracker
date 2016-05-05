@@ -115,8 +115,10 @@
 
         <!--Our Calendar-->
         <div class="col-md-7">
-            <div id='calendar' class="calendar" ng-model="eventSources" calendar="myCalendar1"
-                 ui-calendar="uiConfig.formCalendar"></div>
+            <div id='editCalendar' class="calendar" ng-model="eventSources" calendar="myCalendar1"
+                 ui-calendar="uiConfig.editFormCalendar" ng-show="isNew()"></div>
+            <div id='readCalendar' class="calendar" ng-model="eventSources" calendar="myCalendar1"
+                 ui-calendar="uiConfig.readFormCalendar" ng-hide="isNew()"></div>
 
                <BR>
                 <!--Legend-->
@@ -287,7 +289,7 @@
                         <!--<button type="button" class="btn btn-default" data-dismiss="modal"-->
                                 <!--ng-click="addComments()">{{button-->
                             <!--.label}}</button>-->
-                        <input type="submit" value="SUBMIT" class="btn btn-default" ng-click="addComments()"/>
+                        <input type="submit" value="OK" ng-click="addComments()" class="btn btn-default" />
 
                     </span>
                 </div>

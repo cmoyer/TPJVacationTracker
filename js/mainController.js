@@ -15,6 +15,7 @@ var sysdefURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/Syst
 var vacationProfileURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/VacationProfilesREST';
 var vacationRequestsbyIDURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/VacationRequestsbyIDREST';
 var vacationRequestsbyGroupURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/VacationRequestsbyGroupREST';
+var vacationRequestsbyApproverURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/VacationRequestsbyApproverREST';
 var vacationDaysbyIDURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/VacationDaysbyIDREST';
 var vacationRequestsURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/VacationRequestsREST';
 var dsMaxCount = 100; // the maximum count for the Domino data services
@@ -40,12 +41,13 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
     $scope.lockedByCurrentUser = false;
     $scope.readMode = true;
     $scope.isMobileDevice = false;
-    $scope.saveVacationRequest = saveVacationRequest;
-    $scope.submitVacationRequest = submitVacationRequest;
-    $scope.editVacationRequest = editVacationRequest;
+
+ 
     $scope.getVacationProfile = getVacationProfile;
     $scope.getMyVacationRequests = getMyVacationRequests;
+    $scope.getMyVacationRequestsToApprove = getMyVacationRequestsToApprove;
     $scope.getVacationRequestsByGroup = getVacationRequestsByGroup;
+    $scope.updateVacationProfile = updateVacationProfile;
     $scope.getRequest = getRequest;
     $scope.openRequest = openRequest;
     $scope.recalculateDates = recalculateDates;
@@ -59,6 +61,14 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
     $scope.isSubmitted = isSubmitted;
     $scope.isTaken = isTaken;
     $scope.isApprover = isApprover;
+    $scope.isCancelled = isCancelled;
+
+    // Saving and Status Changes of Requests
+    $scope.saveVacationRequest = saveVacationRequest;
+    $scope.submitVacationRequest = submitVacationRequest;
+    $scope.approveVacationRequest = approveVacationRequest;
+    $scope.rejectVacationRequest = rejectVacationRequest;
+    $scope.cancelVacationRequest = cancelVacationRequest;
 
     //============================================================================
     // BEGIN ANGULAR INITIALIZATION
@@ -77,6 +87,7 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
         $rootScope.vacationRequest.hoursThisRequest = 0;
         $rootScope.vacationProfile = {};
         $rootScope.myVacationRequests = {};
+        $rootScope.myVacationRequestsToApprove = {};
         $rootScope.groupVacationRequests = {};
         $rootScope.vacationRequest.requestComments = "";
         $rootScope.vacationRequest.requestedDates = [{}];
@@ -100,16 +111,25 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
         }
 
 
-
+        //Update the Calendars
         $rootScope.$watch('groupVacationRequests', function(value) {
             if (value != null){
-                // $scope.events = $rootScope.groupVacationRequests;
+
                 $scope.eventSources = [$scope.events];
-                // alert('this fired');
+
+                //Update all of the calendars
                 $('#calendar').fullCalendar( 'removeEventSource', $scope.eventSources);
                 $('#calendar').fullCalendar( 'addEventSource', $scope.eventSources[0]);
                 $('#calendar').fullCalendar( 'refetchEvents' );
-                console.log($scope);
+
+                $('#readCalendar').fullCalendar( 'removeEventSource', $scope.eventSources);
+                $('#readCalendar').fullCalendar( 'addEventSource', $scope.eventSources[0]);
+                $('#readCalendar').fullCalendar( 'refetchEvents' );
+
+                $('#editCalendar').fullCalendar( 'removeEventSource', $scope.eventSources);
+                $('#editCalendar').fullCalendar( 'addEventSource', $scope.eventSources[0]);
+                $('#editCalendar').fullCalendar( 'refetchEvents' );
+                // console.log($scope);
             }
         });
 
@@ -155,6 +175,7 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
             }
             getVacationProfile();
             getMyVacationRequests();
+            getMyVacationRequestsToApprove();
             // alert($rootScope.groupName);
             // getVacationRequestsByGroup($rootScope.groupName);
             // getAllVacationRequests();
@@ -275,7 +296,7 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
                     'hoursThisRequest': $rootScope.vacationRequest.hoursThisRequest,
                     'Approvers': $rootScope.vacationRequest.approvers,
                     'groupName': $rootScope.vacationRequest.groupName,
-                    'Comments': $rootScope.vacationRequest.requestComments,
+                    'requestComments': $rootScope.vacationRequest.requestComments,
                     'requestID': $rootScope.vacationRequest.requestID
                     //'requestedDates': $rootScope.vacationRequest.requestedDates
                 };
@@ -322,14 +343,9 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
                 $timeout(gotoMyRequests, 500);
             }
     }
+    
 
-
-    //TODO: edit vacation request
-    function editVacationRequest(){
-
-    }
-
-
+    //TODO: check user's vacation profile hours vs hours requested.
     function submitVacationRequest(){
         var readyToSubmit = $rootScope.vacationRequest.unid;
         if (readyToSubmit != null) {
@@ -355,23 +371,12 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
         }
     }
 
-    //TODO: cancel vacation request
+    //TODO: update Vacation Profile Hours here
     function cancelVacationRequest(){
-        promptForComments("Reasons for Canceling Request");
-        var data = {
-            'STATUS': "Canceled",
-            'requestComments': $rootScope.vacationRequest.requestComments
-        };
-
-
-        $http.patch(dataPUT + $rootScope.vacationRequest.unid + "?form=Vacation%20Request", data).then(function (response) {
-            console.log(response);
-        });
-
-        gotoMyRequests();
+        promptForComments("Reasons for Cancelling Request", "cancel");
     }
 
-    //TODO: approve vacation request
+    //TODO: update Vacation Profile Hours here
     function approveVacationRequest(){
         var data = {
             'STATUS': "Approved"
@@ -380,29 +385,20 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
 
         $http.patch(dataPUT + $rootScope.vacationRequest.unid + "?form=Vacation%20Request", data).then(function (response) {
             console.log(response);
+            gotoMyRequests();
         });
 
-        gotoMyRequests();
+
     }
 
-    //TODO: reject vacation request
+    //TODO: update Vacation Profile Hours here
     function rejectVacationRequest(){
-        promptForComments("Reasons for Rejecting Request");
-        var data = {
-            'STATUS': "Rejected",
-            'requestComments': $rootScope.vacationRequest.requestComments
-        };
-
-
-        $http.patch(dataPUT + $rootScope.vacationRequest.unid + "?form=Vacation%20Request", data).then(function (response) {
-            console.log(response);
-        });
-
-        gotoMyRequests();
+        promptForComments("Reasons for Rejecting Request", "reject");
     }
     
-    function promptForComments(title){
+    function promptForComments(title, type){
         $scope.modal.title = title;
+        $scope.modal.type = type;
         //$scope.modal.body = "You need to save the Vacation Request before you submit it.";
         $scope.modal.buttons = [];
         var button1 = {};
@@ -414,17 +410,53 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
 
 
     function addComments() {
+
+
         if ($scope.comments != null) {
-            $('#commentsModal').modal('hide');
+
             var currUser = $rootScope.empName;
-            if ($rootScope.vacationRequest.requestComments != null) {
+            var combinedComments;
+            if ($rootScope.vacationRequest.requestComments != "") {
                 var currComments = $rootScope.vacationRequest.requestComments;
                 var newComments = "\n" + currUser + ": " + $scope.comments;
-                $rootScope.vacationRequest.requestComments = currComments.concat(newComments);
+                combinedComments = currComments.concat(newComments);
             } else {
-                $rootScope.vacationRequest.requestComments = currUser + ": " + $scope.comments;
+                combinedComments = currUser + ": " + $scope.comments;
             }
         }
+
+
+        var type = $scope.modal.type;
+        var data;
+
+        switch (type) {
+            case "cancel":
+
+                data = {
+                    'STATUS': "Cancelled",
+                    'requestComments': combinedComments
+                };
+                break;
+
+            case "reject":
+
+                data = {
+                    'STATUS': "Rejected",
+                    'requestComments': combinedComments
+                };
+                break;
+
+            default:
+
+                break;
+        }
+        $http.patch(dataPUT + $rootScope.vacationRequest.unid + "?form=Vacation%20Request", data).then(function (response) {
+            console.log(response);
+        });
+
+        $('#commentsModal').modal('hide');
+        gotoMyRequests();
+
     }
     
     function isSubmitted(){
@@ -455,22 +487,34 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
         }
     }
 
-    function isApprover(){
-        var currUser = $rootScope.empNotesName;
-        if($rootScope.vacationRequest.approvers.length > 1){
-            for (var i=0; i < $rootScope.vacationRequest.approvers.length; i++){
-               if($rootScope.vacationRequest.approvers[i] == currUser){
-                   return true;
-               }
-            }
+    function isCancelled(){
+        var currStatus = $rootScope.vacationRequest.status;
+        if (currStatus == "Cancelled") {
+            return true;
+        } else {
             return false;
-        } else{
-            if ($rootScope.vacationRequest.approvers == currUser){
-                return true;
-            } else {
-                return false;
-            }
         }
+    }
+
+    function isApprover(){
+        // var currUser = $rootScope.empNotesName;
+        // if($rootScope.vacationRequest.approvers.length > 1){
+        //     for (var i=0; i < $rootScope.vacationRequest.approvers.length; i++){
+        //        if($rootScope.vacationRequest.approvers[i] == currUser){
+        //            return true;
+        //        }
+        //     }
+        //     return false;
+        // } else{
+        //     if ($rootScope.vacationRequest.approvers == currUser){
+        //         return true;
+        //     } else {
+        //         return false;
+        //     }
+        // }
+
+        //THIS IS FOR DEMO/TESTING PURPOSES ONLY
+        return true;
 
     }
 
@@ -547,6 +591,11 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
         });
     }
 
+    //TODO: Update the hours on a vacation profile
+    function updateVacationProfile(hoursSubmitted, hoursApproved, hoursRejected, hoursCancelled){
+
+    }
+
 
     function getMyVacationRequests(){
         var u = $rootScope.empNotesName;
@@ -554,6 +603,20 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
         $http.get(requestString).
         success(function(data) {
             $rootScope.myVacationRequests = data;
+        }).
+        error(function(data, status, headers, config) {
+            // log error
+        });
+    }
+
+    //TODO: Change this back to find the current empNotesName
+    function getMyVacationRequestsToApprove(){
+        //var u = $rootScope.empNotesName;
+        var u = "CN=Nick Coccagna/O=TPJ";
+        var requestString = vacationRequestsbyApproverURL + "?keys=" + u + "&keysexactmatch=true";
+        $http.get(requestString).
+        success(function(data) {
+            $rootScope.myVacationRequestsToApprove = data;
         }).
         error(function(data, status, headers, config) {
             // log error
@@ -759,9 +822,7 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
             }
         }
 
-        //return total;
         $rootScope.vacationRequest.hoursThisRequest = total;
-
 
     }
 
@@ -958,8 +1019,24 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
             eventResize: $scope.alertOnResize,
             eventRender: $scope.eventRender
         },
-
-        formCalendar:{
+        readFormCalendar:{
+            editable: false,
+            selectable: false,
+            unselectAuto: false,
+            selectHelper: true,
+            eventLimit: true,
+            businessHours: true,
+            header:{
+                left: 'prev,next today',
+                center: 'title',
+                right: 'month'
+            },
+            eventClick: $scope.alertOnEventClick,
+            eventDrop: $scope.alertOnDrop,
+            eventResize: $scope.alertOnResize,
+            eventRender: $scope.eventRender
+        },
+        editFormCalendar:{
             editable: false,
             selectable: true,
             unselectAuto: false,
