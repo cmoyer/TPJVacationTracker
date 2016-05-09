@@ -54,6 +54,7 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
     $scope.recalculateHours = recalculateHours;
     $scope.addComments = addComments;
     $scope.promptForComments = promptForComments;
+    $scope.cancelComments = cancelComments;
     var ismobi = navigator.userAgent.match(/Mobi/i);
 
     // Hide/When functions
@@ -70,6 +71,7 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
     $scope.approveVacationRequest = approveVacationRequest;
     $scope.rejectVacationRequest = rejectVacationRequest;
     $scope.cancelVacationRequest = cancelVacationRequest;
+    $scope.closeVacationRequest = closeVacationRequest;
 
     //============================================================================
     // BEGIN ANGULAR INITIALIZATION
@@ -101,6 +103,7 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
         $scope.modalResponse = "none";
         $scope.modal = {};
         $scope.modal.buttons = [];
+        $rootScope.previousLocation = "";
        
 
 
@@ -148,6 +151,11 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
         if ($scope.uid != null) {
             getRequest($scope.uid);
         }
+
+        console.log($rootScope);
+
+        var tmpLocation = $location.path();
+        console.log(tmpLocation);
 
     }
 
@@ -424,14 +432,18 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
         $scope.modal.title = title;
         $scope.modal.type = type;
         //$scope.modal.body = "You need to save the Vacation Request before you submit it.";
-        $scope.modal.buttons = [];
-        var button1 = {};
-        button1.label = "OK";
-        button1.callback = "";
-        $scope.modal.buttons.push(button1);
+        // $scope.modal.buttons = [];
+        // var button1 = {};
+        // button1.label = "OK";
+        // button1.callback = "";
+        // $scope.modal.buttons.push(button1);
         $('#commentsModal').modal('show');
     }
 
+
+    function cancelComments(){
+        $('#commentsModal').modal('hide');
+    }
 
     function addComments() {
 
@@ -625,8 +637,15 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
     }
 
     //TODO: Update the hours on a vacation profile
-    function updateVacationProfile(hoursSubmitted, hoursApproved, hoursRejected, hourscanceled){
-        
+    function updateVacationProfile(year, hoursSubmitted, hoursApproved, hoursRejected, hourscanceled){
+
+        // for(var i = 0; i < $rootScope.vacationProfile.length; i++){
+        //
+        // }
+
+        // $http.patch(dataPUT + $rootScope.vacationRequest.unid + "?form=Vacation%20Request", data).then(function (response) {
+        //     console.log(response);
+        // });
     }
 
 
@@ -860,6 +879,13 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
     }
 
     function gotoMyRequests(){
+        $window.location.href = "myRequests.html";
+    }
+
+    function closeVacationRequest(){
+        //check to see if the form is saved first
+        
+
         $window.location.href = "myRequests.html";
     }
 

@@ -184,10 +184,37 @@
             <div class="row">
                 <!--HoursSoFar-->
                 <div class = pull-right>
-                    <h4>Total Hours This Request: </h4>
-                   <h2 class="pull-right" id="totalHours">{{vacationRequest.hoursThisRequest}}</h2>
+                    <table id="hoursStatusTable">
+                        <tr>
+                            <td>
+                                <h4>Total Hours This Request: </h4>
+                            </td>
+
+                            <td>
+                                <h2 id="totalHours">{{vacationRequest.hoursThisRequest}}</h2>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>
+                                <h4>Status: </h4>
+                            </td>
+
+                            <td>
+                                <h2 id="status">{{vacationRequest.status}}</h2>
+                            </td>
+                        </tr>
+                    </table>
+
+
 
                 </div>
+
+                <!--<div class = pull-right>-->
+                    <!--<h4>Status: </h4>-->
+                    <!--<h2 class="pull-right" id="status">{{vacationRequest.status}}</h2>-->
+
+                <!--</div>-->
             </div>
         </div>
     </div>
@@ -285,13 +312,8 @@
 
                 </div>
                 <div class="modal-footer">
-                    <span ng-repeat="button in modal.buttons">
-                        <!--<button type="button" class="btn btn-default" data-dismiss="modal"-->
-                                <!--ng-click="addComments()">{{button-->
-                            <!--.label}}</button>-->
                         <input type="submit" value="OK" ng-click="addComments()" class="btn btn-default" />
-
-                    </span>
+                    <input type="submit" value="Cancel" ng-click="cancelComments()" class="btn btn-default" />
                 </div>
             </div>
         </div>

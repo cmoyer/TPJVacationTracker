@@ -14,40 +14,31 @@
             <li ng-show="isNew()">
                 <a href="#" ng-click="saveVacationRequest()">
                     <span class="glyphicons glyphicons-floppy-save" aria-hidden="true"></span> Save
-                    Vacation
-                    Request
                 </a>
             </li>
+
 
             <li ng-show="isNew() && isSaved()">
                 <a href="#" ng-click="submitVacationRequest()">
                     <span class="glyphicons glyphicons-inbox-in" aria-hidden="true"></span> Submit
-                    Vacation
-                    Request
                 </a>
             </li>
 
             <li ng-show="isSubmitted() && isApprover()">
                 <a href="#" ng-click="approveVacationRequest()">
                     <span class="glyphicons glyphicons-ok-circle" aria-hidden="true"></span> Approve
-                    Vacation
-                    Request
                 </a>
             </li>
 
             <li ng-show="isSubmitted() && isApprover()">
                 <a href="#" ng-click="rejectVacationRequest()">
                     <span class="glyphicons glyphicons-remove-circle" aria-hidden="true"></span> Reject
-                    Vacation
-                    Request
                 </a>
             </li>
 
             <li ng-hide="isNew() || isTaken() || isCanceled()">
                 <a href="#" ng-click="cancelVacationRequest()">
                     <span class="glyphicons glyphicons-ban-circle" aria-hidden="true"></span> Cancel
-                    Vacation
-                    Request
                 </a>
             </li>
 
@@ -56,6 +47,14 @@
                     <span class="glyphicons glyphicons-refresh" aria-hidden="true"></span> Recalculate
                 </a>
             </li>
+
+            <li ng-show="isNew()">
+                <a href="#" ng-click="closeVacationRequest()">
+                    <span class="glyphicons glyphicons-folder-closed" aria-hidden="true"></span> Close
+                </a>
+            </li>
+
+
         </ul>
     </div>
 </div>

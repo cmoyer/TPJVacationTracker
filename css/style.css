@@ -270,8 +270,20 @@ select[disabled] {
 }
 
 #totalHours {
+    padding-left: 30px;
     color: #2aabd2;
 }
+
+#status {
+    padding-left: 30px;
+    color: #2aabd2;
+}
+
+#hoursStatusTable {
+    text-align: right;
+}
+
+
 
 
 .my-legend .legend-scale ul {
