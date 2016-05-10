@@ -11,7 +11,7 @@
                 {{vacationRequest.status}}
             </li>
 
-            <li ng-show="isNew()">
+            <li ng-show="isNew() && !isProcessing()">
                 <a href="#" ng-click="saveVacationRequest()">
                     <span class="glyphicons glyphicons-floppy-save" aria-hidden="true"></span> Save
                 </a>

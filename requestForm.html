@@ -31,6 +31,8 @@
 
     <script src="js/calendar.js"></script>
 
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-messages.js"></script>
+
     <!-- GUID generator -->
     <script src="js/angular-uuid2.min.js"></script>
 
@@ -299,7 +301,7 @@
 
 <!-- Comments Modal -->
 <div class="modal fade" id="commentsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-    <form>
+    <form name="commentsForm">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -309,11 +311,18 @@
                 <div class="modal-body">
                     <textarea class="form-control" id="comments" ng-model="comments" name="comments"
                            placeholder="Enter Comments.." required></textarea>
+                    <!--<div ng-messages="commentsForm.comments.$error">-->
+                        <!--<div ng-message="required">This field is required</div>-->
+                    <!--</div>-->
+                    <div ng-messages="commentsForm.comments.$error" style="color:maroon" role="alert">
+                        <div ng-message="required">Please enter a comment.</div>
+                    </div>
 
                 </div>
                 <div class="modal-footer">
-                        <input type="submit" value="OK" ng-click="addComments()" class="btn btn-default" />
-                    <input type="submit" value="Cancel" ng-click="cancelComments()" class="btn btn-default" />
+                        <input type="button" value="OK" ng-click="addComments()" ng-show="hasComments()"
+                               class="btn btn-default" />
+                    <input type="button" value="Cancel" ng-click="cancelComments()" class="btn btn-default" />
                 </div>
             </div>
         </div>
