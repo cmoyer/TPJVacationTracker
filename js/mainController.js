@@ -18,6 +18,7 @@ var vacationRequestsbyGroupURL = domainURL + '/VacationTracker.nsf/api/data/coll
 var vacationRequestsbyApproverURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/VacationRequestsbyApproverREST';
 var vacationDaysbyIDURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/VacationDaysbyIDREST';
 var vacationRequestsURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/VacationRequestsREST';
+var holidayURL = domainURL + '/TimeTracking.nsf/api/data/collections/name/HolidaysREST';
 var dsMaxCount = 100; // the maximum count for the Domino data services
 var unidStr = "@unid";
 
@@ -95,6 +96,7 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
         $rootScope.myVacationRequests = {};
         $rootScope.myVacationRequestsToApprove = {};
         $rootScope.groupVacationRequests = {};
+        $rootScope.holidayList = {};
         $rootScope.vacationRequest.requestComments = "";
         $rootScope.vacationRequest.requestedDates = [{}];
         $rootScope.vacationRequest.requestedDates.shift();
@@ -151,11 +153,14 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
         // on load of the page, get the System Defaults data
         getSystemDefaults();
 
+        // on load of the page, get the Holiday List from Time Tracking
+        getHolidayList();
+
         if ($scope.uid != null) {
             getRequest($scope.uid);
         }
 
-        // console.log($rootScope);
+        console.log($rootScope);
 
     }
 
@@ -164,6 +169,19 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
         $http.get(sysdefURL).
         success(function(data) {
             $scope.systemDefaults = data[0];
+        }).
+        error(function(data, status, headers, config) {
+            // log error
+            //console.log("error");
+        });
+    }
+
+    //TODO: Implement getHolidayList
+    function getHolidayList(){
+        //get the System Defaults from the Domino database
+        $http.get(holidayURL + "?count=" + dsMaxCount).
+        success(function(data) {
+            $rootScope.holidayList = data;
         }).
         error(function(data, status, headers, config) {
             // log error
@@ -193,6 +211,12 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
         error(function(data, status, headers, config) {
 
         });
+    }
+
+    function logoutUser(){
+        //log the current user out and then redirect them
+        var currURL = window.location;
+        window.location = dataURL + "?Logout&RedirectTo=" + currURL;
     }
 
     function lockDocument(){
@@ -823,7 +847,7 @@ function MainCtrl($rootScope, $scope,  $location, $http, $compile, $timeout, $wi
                 formattedVacationDays.push(formattedDate);
             }
 
-//todo
+
             var vacationDaysRequestString = vacationDaysbyIDURL + "?keys=" + $rootScope.vacationRequest.requestID + "&keysexactmatch=true";
 
             $http.get(vacationDaysRequestString).
