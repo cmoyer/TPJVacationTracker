@@ -800,6 +800,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $timeout, $win
 
 
         var requestString = vacationRequestsbyGroupURL + "?keys=" + group + "&keysexactmatch=true";
+        console.log(requestString);
         $http.get(requestString).
         success(function(data) {
             $rootScope.groupVacationRequests = data;
@@ -813,6 +814,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $timeout, $win
                 var tmpEnd = new Date(data[i].endDate);
                 newEvent.end = tmpEnd.setDate(tmpEnd.getDate() + 1);
                 newEvent.allDay = true;
+                //newEvent.color = "purple";
                 // $('#calendar').fullCalendar( 'renderEvent', newEvent );
                 eventArray.push(newEvent);
             }
@@ -1102,6 +1104,10 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $timeout, $win
         return false;
     }
 
+    function convertStrToDate(strDate){
+        return strDate.substr(strDate.indexOf(",") + 1);
+    }
+
 
 //     // *********************************************
 //     // Angular Calendar
@@ -1269,8 +1275,8 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $timeout, $win
                 startDate.setDate(startDate.getDate()+1);
                 dateArray = getDates(startDate, endDate);
 
-                $rootScope.vacationRequest.startDate = startDate;
-                $rootScope.vacationRequest.endDate = endDate;
+                // $rootScope.vacationRequest.startDate = startDate;
+                // $rootScope.vacationRequest.endDate = endDate;
 
 
 
@@ -1329,6 +1335,14 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $timeout, $win
 
                 $rootScope.vacationRequest.requestedDates = tmpRequestDates;
                 $rootScope.vacationRequest.hoursThisRequest = $rootScope.vacationRequest.requestedDates.length * 8;
+
+                console.log(tmpRequestDates);
+                var length = tmpRequestDates.length;
+                var tmpStartDate = new Date(convertStrToDate(tmpRequestDates[0].name));
+                var tmpEndDate = new Date(convertStrToDate(tmpRequestDates[length-1].name));
+
+                $rootScope.vacationRequest.startDate = tmpStartDate;
+                $rootScope.vacationRequest.endDate = tmpEndDate;
 
             }
         }
