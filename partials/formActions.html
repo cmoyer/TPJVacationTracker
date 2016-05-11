@@ -11,7 +11,7 @@
                 {{vacationRequest.status}}
             </li>
 
-            <li ng-show="isNew() && !isProcessing()">
+            <li ng-show="isNew()">
                 <a href="#" ng-click="saveVacationRequest()">
                     <span class="glyphicons glyphicons-floppy-save" aria-hidden="true"></span> Save
                 </a>
@@ -42,15 +42,15 @@
                 </a>
             </li>
 
-            <li ng-show="isNew()">
-                <a href="#" ng-click="recalculateDates()" ng-show="isMobileDevice">
-                    <span class="glyphicons glyphicons-refresh" aria-hidden="true"></span> Recalculate
+            <li>
+                <a href="#" ng-click="closeVacationRequest()">
+                    <span class="glyphicons glyphicons-folder-closed" aria-hidden="true"></span> Close
                 </a>
             </li>
 
-            <li ng-show="isNew()">
-                <a href="#" ng-click="closeVacationRequest()">
-                    <span class="glyphicons glyphicons-folder-closed" aria-hidden="true"></span> Close
+            <li ng-show="isNew() && isSaved()">
+                <a href="#" ng-click="deleteVacationRequest()">
+                    <span class="glyphicons glyphicons-floppy-save" aria-hidden="true"></span> Delete
                 </a>
             </li>
 
