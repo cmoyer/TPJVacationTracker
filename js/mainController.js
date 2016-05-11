@@ -807,6 +807,11 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $timeout, $win
             
             var eventArray = [{}];
             eventArray.shift();
+
+            //TODO: Each event needs to be its own bubble
+            //NOTES: You will need to get the dates associated with this request and make them their own event
+            // bubbles. Maybe we want to store an array of the dates on the request rather than having to look up
+            // the dates?
             for(var i = 0; i < data.length; i++){
                 var newEvent = {};
                 newEvent.title = data[i].empName;
@@ -1332,6 +1337,8 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $timeout, $win
                         return 1;
                     }
                 });
+
+                //TODO: We don't have to actually do this conversion since there can be gaps
 
                 $rootScope.vacationRequest.requestedDates = tmpRequestDates;
                 $rootScope.vacationRequest.hoursThisRequest = $rootScope.vacationRequest.requestedDates.length * 8;
