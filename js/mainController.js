@@ -77,8 +77,8 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
     $scope.cancelVacationRequest = cancelVacationRequest;
     $scope.closeVacationRequest = closeVacationRequest;
     $scope.deleteVacationRequest = deleteVacationRequest;
-    $scope.deleteVacationDayDocuments = deleteVacationDayDocuments;
     $scope.createVacationDayDocuments = createVacationDayDocuments;
+    $scope.deleteVacationDays = deleteVacationDays;
 
     //============================================================================
     // BEGIN ANGULAR INITIALIZATION
@@ -284,37 +284,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
     }
 
-    function deleteVacationDayDocuments(){
-        var vacationDaysRequestString = vacationDaysbyIDURL + "?keys=" + $rootScope.vacationRequest.requestID + "&keysexactmatch=true";
-       $http.get(vacationDaysRequestString)
-            .then(function(data){
-
-                var arrUNID = [];
-                for(var i = 0; i < data.length; i++){
-                    arrUNID.push(data[i][unidStr]);
-                }
-
-                for (var j=0; j < arrUNID.length; j++){
-                    var deleteString = dataPUT + "/" + arrUNID[j];
-                    $http.delete(deleteString).
-                    success(function(data){
-
-                    }).
-                    error(function(data, status, headers, config){
-
-                    });
-
-                }
-
-               
-
-        }).catch(function(data,status,headers,config){
-
-        });
-    }
-
     function createVacationDayDocuments(){
-
 
         var defer = $q.defer();
 
@@ -331,9 +301,6 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
             };
 
             for(var j=0; j < $rootScope.vacationRequest.requestedDates.length; j++){
-                console.log($rootScope.vacationRequest.requestedDates[j].name);
-                console.log(tmpData.name);
-                console.log($rootScope.vacationRequest.requestedDates[j].unid);
                 if ($rootScope.vacationRequest.requestedDates[j].name == tmpData.name && $rootScope.vacationRequest.requestedDates[j].unid != null){
                     docExists = true;
                 }
@@ -352,7 +319,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
 
         }
-
+        defer.resolve();
         return defer.promise;
     }
 
@@ -454,10 +421,18 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
             createVacationDayDocuments()
                 .then(function(){
                     // THIS NEEDS TO BE HERE TO GET THE UNID OF THE LOTUS DOCUMENT BECAUSE WE ARE NO LONGER CLOSING THE FORM.
-                    $timeout(openRequest($rootScope.vacationRequest.requestID), 3000);
+                    // alert("here");
+                    // $timeout(openRequest($rootScope.vacationRequest.requestID), 2000);
+                    $timeout( function(){ $scope.openRequest($rootScope.vacationRequest.requestID); }, 200);
+                })
+                .error(function(){
+                    // alert("in error");
+                    // $timeout(openRequest($rootScope.vacationRequest.requestID), 2000);
+                    $timeout( function(){ $scope.openRequest($rootScope.vacationRequest.requestID); }, 200);
                 });
 
 
+            // $timeout(openRequest($rootScope.vacationRequest.requestID), 500);
         }
 
 
@@ -468,8 +443,6 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
     }
 
-
-    //TODO: calculateHours
     function checkForOverage(requestedDates){
         var thisYearsHours = 0;
         var nextYearsHours = 0;
@@ -617,12 +590,12 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         $('#commentsModal').modal('show');
     }
 
-
-    function deleteVacationRequest(){
+    function deleteVacationDays(){
+        var defer = $q.defer();
 
         //get all existing day documents for this request and delete them
-        var vacationDaysRequestString = vacationDaysbyIDURL + "?keys=" + $rootScope.vacationRequest.requestID + "&keysexactmatch=true";
-        $http.get(vacationDaysRequestString + "&keysexactmatch=true&?count=" + dsMaxCount).
+        var vacationDaysRequestString = vacationDaysbyIDURL + "?keys=" + $rootScope.vacationRequest.requestID + "&keysexactmatch=true&count=" + dsMaxCount;
+        $http.get(vacationDaysRequestString).
         success(function(data){
 
             var arrUNID = [];
@@ -639,19 +612,49 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
                 error(function(data, status, headers, config){
 
                 });
+
             }
+
+
 
         }).
         error(function(data,status,headers,config){
 
         });
 
-        //Delete the vacation request document
-        var deleteString = dataPUT + "/" + $rootScope.vacationRequest.unid;
-        $http.delete(deleteString).then(function (response) {
-            // console.log(response);
-            $timeout(gotoMyRequests(), 2000);
-        });
+        defer.resolve();
+        return defer.promise;
+
+    }
+
+    function deleteVacationRequest(){
+
+        deleteVacationDays()
+            .then(function(){
+                //Delete the vacation request document
+                var deleteString = dataPUT + "/" + $rootScope.vacationRequest.unid;
+                $http.delete(deleteString).then(function (response) {
+                    // console.log(response);
+                    $timeout( function(){ gotoMyRequests(); }, 200);
+                });
+            });
+
+
+
+        // deleteVacationDays()
+        //     .then(function(){
+        //         //Delete the vacation request document
+        //         var deleteString = dataPUT + "/" + $rootScope.vacationRequest.unid;
+        //         $http.delete(deleteString).then(function (response) {
+        //             // console.log(response);
+        //             $timeout( function(){ gotoMyRequests(); }, 500);
+        //         });
+        //
+        //     })
+        //     .error(function(){
+        //         console.log("error");
+        //     });
+
     }
 
     function cancelComments(){
