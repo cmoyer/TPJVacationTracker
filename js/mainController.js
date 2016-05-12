@@ -3,7 +3,7 @@
  */
 
 var main = angular.module('main', ['ngMessages','ui.calendar', 'ngRoute','angularUUID2'])
-    .controller('mainCtrl',['$rootScope','$scope', '$location', '$http', '$compile', '$timeout','$window', 'uuid2', MainCtrl]);
+    .controller('mainCtrl',['$rootScope','$scope', '$location', '$http', '$compile', '$q','$timeout','$window', 'uuid2', MainCtrl]);
 var domainURL = '//www.pjdick.com';
 var dataURL = domainURL + '/VacationTracker.nsf';
 var recordLockURL = domainURL + '/VacationTracker.nsf/api/data/documents';
@@ -22,7 +22,7 @@ var holidayURL = domainURL + '/TimeTracking.nsf/api/data/collections/name/Holida
 var dsMaxCount = 100; // the maximum count for the Domino data services
 var unidStr = "@unid";
 
-function MainCtrl($rootScope, $scope, $location, $http, $compile, $timeout, $window, uuid2){
+function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, $window, uuid2){
 
 
 
@@ -144,6 +144,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $timeout, $win
                 // console.log($scope);
             }
         });
+
 
 
 
@@ -314,6 +315,10 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $timeout, $win
 
     function createVacationDayDocuments(){
 
+
+        var defer = $q.defer();
+
+
         //if the doc has been created, update, else, post
         for (var i=0; i < $rootScope.vacationRequest.requestedDates.length; i++){
             var docExists = false;
@@ -337,16 +342,18 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $timeout, $win
             if (docExists == true){
                 var putStr = dataPUT + $rootScope.vacationRequest.requestedDates[i].unid;
                 $http.put(putStr, tmpData).then(function (response){
-                    // console.log(response)
+
                 });
             } else {
                 $http.post(dataPOST + "?form=Vacation%20Day", tmpData).then(function (response) {
-                    // console.log(response)
+
                 });
             }
 
 
         }
+
+        return defer.promise;
     }
 
     function saveVacationRequest(){
@@ -411,8 +418,6 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $timeout, $win
 
             }
 
-            alert($rootScope.groupName);
-
             var data = {
                 'empName': $rootScope.vacationRequest.empName,
                 'date': $rootScope.vacationRequest.date,
@@ -433,6 +438,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $timeout, $win
 
 
 
+
             // console.log(data);
             if($rootScope.vacationRequest.unid == null) {
                 $http.post(dataPOST + "?form=Vacation%20Request", data).then(function (response) {
@@ -445,30 +451,96 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $timeout, $win
                 });
             }
 
-            createVacationDayDocuments();
+            createVacationDayDocuments()
+                .then(function(){
+                    // THIS NEEDS TO BE HERE TO GET THE UNID OF THE LOTUS DOCUMENT BECAUSE WE ARE NO LONGER CLOSING THE FORM.
+                    $timeout(openRequest($rootScope.vacationRequest.requestID), 3000);
+                });
 
-            // THIS NEEDS TO BE HERE TO GET THE UNID OF THE LOTUS DOCUMENT BECAUSE WE ARE NO LONGER CLOSING THE FORM.
-            $timeout(openRequest($rootScope.vacationRequest.requestID), 3000);
 
         }
 
 
     }
 
-    //TODO: calculateHoursForOverage
-    function calculateHoursForOverage(arrDates){
+    //TODO: createVacationProfile(year, empNotesName)
+    function createVacationProfile(year, empNotesName){
+
+    }
+
+
+    //TODO: calculateHours
+    function checkForOverage(requestedDates){
+        var thisYearsHours = 0;
+        var nextYearsHours = 0;
+        var currentdate = new Date();
+        var thisYear = currentdate.getFullYear();
+        var nextYear = thisYear + 1;
+        var tmpHours;
+        var thisYearRemaining = 0;
+        var nextYearRemaining = 0;
+        var overage = false;
+
         // check to see which years are included in this request
+        for (var i=0; i < requestedDates.length; i++){
+            var selectedDate = new Date(convertStrToDate(requestedDates[i].name));
+            var selectedYear = selectedDate.getFullYear();
+
+            if (requestedDates[i].value == "Whole"){
+                tmpHours = 8;
+            } else {
+                tmpHours = 4;
+            }
+
+            if (selectedYear == thisYear){
+                thisYearsHours += tmpHours;
+            } else if(selectedYear == nextYear){
+                nextYearsHours += tmpHours;
+            }
+        }
 
         // then check to see if the user has a vacation profile for each of those years
         // if not, throw a flag and don't continue.
+        var needToCreateNextYear = true;
+        if (nextYearsHours > 0){
+            for (var j=0; j < $rootScope.vacationProfile.length; j++){
+                if($rootScope.vacationProfile[j].Year == nextYear.toString){
+                    needToCreateNextYear = false;
+                }
+            }
+        }
 
-        // if they have profiles for each, get a value of hours requested for each year
+        if (needToCreateNextYear == true){
+            createVacationProfile(nextYear, $rootScope.empNotesName);
+            getVacationProfile();
+        }
+
+
 
         // compare each year to the respective Vacation Profile hours remaining value
+        for(var k = 0; k < $rootScope.vacationProfile.length; k++){
+            switch ($rootScope.vacationProfile[k].Year) {
+                case thisYear.toString():
+                    thisYearRemaining = $rootScope.vacationProfile[k].HoursRemaining;
+                    break;
+                case nextYear.toString():
+                    nextYearRemaining = $rootScope.vacationProfile[k].HoursRemaining;
+                    break;
+            }
+
+        }
+
+        if (thisYearsHours > thisYearRemaining){
+            overage = true;
+        } else if (nextYearsHours > nextYearRemaining){
+            overage = true;
+        }
 
         // if there is an overage on either document, prompt the user and ask if they would still like to save
 
-        //if they confirm, return true, else, return false
+        return overage;
+
+
     }
 
     //TODO: check user's vacation profile hours vs hours requested.
@@ -476,6 +548,9 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $timeout, $win
         var readyToSubmit = $rootScope.vacationRequest.unid;
         if (readyToSubmit != null) {
 
+            var isOverage = checkForOverage($rootScope.vacationRequest.requestedDates);
+
+            alert(isOverage);
 
             var data = {
                 'STATUS': "Submitted"
@@ -487,6 +562,10 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $timeout, $win
             });
 
             createVacationDayDocuments();
+
+            //calculate hours
+
+
 
             $timeout(gotoMyRequests(), 2000);
         } else {
@@ -543,7 +622,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $timeout, $win
 
         //get all existing day documents for this request and delete them
         var vacationDaysRequestString = vacationDaysbyIDURL + "?keys=" + $rootScope.vacationRequest.requestID + "&keysexactmatch=true";
-        $http.get(vacationDaysRequestString).
+        $http.get(vacationDaysRequestString + "&keysexactmatch=true&?count=" + dsMaxCount).
         success(function(data){
 
             var arrUNID = [];
@@ -785,9 +864,14 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $timeout, $win
     //TODO: Update the hours on a vacation profile
     function updateVacationProfile(year, hoursSubmitted, hoursApproved, hoursRejected, hourscanceled){
 
-        // for(var i = 0; i < $rootScope.vacationProfile.length; i++){
-        //
-        // }
+        var unidForYear;
+        for(var i = 0; i < $rootScope.vacationProfile.length; i++){
+            if($rootScope.vacationProfile[i].Year == year){
+                alert("we found it")
+                unidForYear = $rootScope.vacationProfile[i][unidStr];
+                alert(unidForYear);
+            }
+        }
 
         // $http.patch(dataPUT + $rootScope.vacationRequest.unid + "?form=Vacation%20Request", data).then(function (response) {
         //     console.log(response);
@@ -797,7 +881,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $timeout, $win
 
     function getMyVacationRequests(){
         var u = $rootScope.empNotesName;
-        var requestString = vacationRequestsURL + "?keys=" + u + "&keysexactmatch=true";
+        var requestString = vacationRequestsURL + "?keys=" + u + "&keysexactmatch=true&count=" + dsMaxCount;
         $http.get(requestString).
         success(function(data) {
             $rootScope.myVacationRequests = data;
@@ -811,7 +895,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $timeout, $win
     function getMyVacationRequestsToApprove(){
         //var u = $rootScope.empNotesName;
         var u = "CN=Nick Coccagna/O=TPJ";
-        var requestString = vacationRequestsbyApproverURL + "?keys=" + u + "&keysexactmatch=true";
+        var requestString = vacationRequestsbyApproverURL + "?keys=" + u + "&keysexactmatch=true&count=" + dsMaxCount;
         $http.get(requestString).
         success(function(data) {
             $rootScope.myVacationRequestsToApprove = data;
@@ -823,7 +907,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $timeout, $win
 
 
     function getVacationRequestsByGroup(group){
-        var requestString = vacationRequestsbyGroupURL + "?keys=" + group + "&keysexactmatch=true";
+        var requestString = vacationRequestsbyGroupURL + "?keys=" + group + "&keysexactmatch=true&count=" + dsMaxCount;
         $http.get(requestString).
         success(function(data) {
             $rootScope.groupVacationRequests = data;
@@ -877,7 +961,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $timeout, $win
 
 
     function getUnidOfVacationRequest(id){
-        var requestString = vacationRequestsbyIDURL + "?keys=" + id + "&keysexactmatch=true";
+        var requestString = vacationRequestsbyIDURL + "?keys=" + id + "&keysexactmatch=true&count=" + dsMaxCount;
         $http.get(requestString).
         success(function(data) {
 
@@ -892,7 +976,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $timeout, $win
     }
 
     function getRequest(id){
-        var requestString = vacationRequestsbyIDURL + "?keys=" + id + "&keysexactmatch=true";
+        var requestString = vacationRequestsbyIDURL + "?keys=" + id + "&keysexactmatch=true&count=" + dsMaxCount;
         $http.get(requestString).
         success(function(data) {
             // console.log(data);
@@ -932,7 +1016,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $timeout, $win
             }
 
 
-            var vacationDaysRequestString = vacationDaysbyIDURL + "?keys=" + $rootScope.vacationRequest.requestID + "&keysexactmatch=true";
+            var vacationDaysRequestString = vacationDaysbyIDURL + "?keys=" + $rootScope.vacationRequest.requestID + "&keysexactmatch=true&count=" + dsMaxCount;
 
             $http.get(vacationDaysRequestString).
                 success(function(data){
@@ -949,6 +1033,8 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $timeout, $win
                     $rootScope.vacationRequest.requestedDates.push(tmpData);
                     $rootScope.vacationRequest.dayUNID.push(data[i][unidStr]);
                 }
+
+                console.log($rootScope.vacationRequest.requestedDates);
 
             }).
                 error(function(data,status,headers,config){
