@@ -516,7 +516,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
     }
 
-    //TODO: check user's vacation profile hours vs hours requested.
+
     function submitVacationRequest(){
         var readyToSubmit = $rootScope.vacationRequest.unid;
         if (readyToSubmit != null) {
@@ -876,9 +876,11 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
             }
         }
 
-        // $http.patch(dataPUT + $rootScope.vacationRequest.unid + "?form=Vacation%20Request", data).then(function (response) {
-        //     console.log(response);
-        // });
+
+
+        $http.patch(dataPUT + $rootScope.vacationProfile.unid + "?form=Vacation%20Request", data).then(function (response) {
+            console.log(response);
+        });
     }
 
 
