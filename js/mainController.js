@@ -344,6 +344,8 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $timeout, $win
                     // console.log(response)
                 });
             }
+
+
         }
     }
 
@@ -363,12 +365,16 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $timeout, $win
             $rootScope.vacationRequest.empNotesName = $rootScope.empNotesName;
         }
 
+        // alert($rootScope.groupName);
         if($rootScope.vacationRequest.groupName == null){
             $rootScope.vacationRequest.groupName = $rootScope.groupName;
         }
+
+
         //$rootScope.vacationRequest.requestComments = "";
         var selectedDays = $rootScope.vacationRequest.requestedDates;
         var length = selectedDays.length;
+
 
         if (length == 0){
             $scope.modal.title = "Not Enough Information to Save";
@@ -387,7 +393,25 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $timeout, $win
                 $rootScope.vacationRequest.requestID = "{" + uuid2.newguid() + "}"
             }
 
+            var tmpHours = parseInt($rootScope.vacationRequest.hoursThisRequest);
+            var numberOfDays = tmpHours / 8;
 
+            var datesThisRequest = [];
+            var datesStr = "";
+
+            for(var i=0; i < $rootScope.vacationRequest.requestedDates.length; i++){
+                var tmpDate= new Date(convertStrToDate($rootScope.vacationRequest.requestedDates[i].name));
+                datesThisRequest.push(tmpDate.format("mm/dd/yyyy"));
+
+                if(datesStr == ""){
+                    datesStr = tmpDate.format("mm/dd/yyyy").toString();
+                } else {
+                    datesStr = datesStr.concat(', ' + tmpDate.format("mm/dd/yyyy").toString())
+                }
+
+            }
+
+            alert($rootScope.groupName);
 
             var data = {
                 'empName': $rootScope.vacationRequest.empName,
@@ -401,9 +425,11 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $timeout, $win
                 'groupName': $rootScope.vacationRequest.groupName,
                 'requestComments': $rootScope.vacationRequest.requestComments,
                 'requestID': $rootScope.vacationRequest.requestID,
-                'numberOfDays': $rootScope.vacationRequest.requestedDates.length
-                //'requestedDates': $rootScope.vacationRequest.requestedDates
+                'numberOfDays': numberOfDays,
+                'datesThisRequest': datesStr
+                // 'requestedDates': $rootScope.vacationRequest.requestedDates
             };
+
 
 
 
@@ -414,7 +440,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $timeout, $win
                 });
             } else {
 
-                $http.put(dataPUT + $rootScope.vacationRequest.unid + "?form=Vacation%20Request", data).then(function (response){
+                $http.patch(dataPUT + $rootScope.vacationRequest.unid + "?form=Vacation%20Request", data).then(function (response){
                     // console.log(response)
                 });
             }
@@ -422,7 +448,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $timeout, $win
             createVacationDayDocuments();
 
             // THIS NEEDS TO BE HERE TO GET THE UNID OF THE LOTUS DOCUMENT BECAUSE WE ARE NO LONGER CLOSING THE FORM.
-            $timeout(openRequest($rootScope.vacationRequest.requestID), 2000);
+            $timeout(openRequest($rootScope.vacationRequest.requestID), 3000);
 
         }
 
@@ -797,10 +823,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $timeout, $win
 
 
     function getVacationRequestsByGroup(group){
-
-
         var requestString = vacationRequestsbyGroupURL + "?keys=" + group + "&keysexactmatch=true";
-        console.log(requestString);
         $http.get(requestString).
         success(function(data) {
             $rootScope.groupVacationRequests = data;
@@ -881,7 +904,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $timeout, $win
             $rootScope.vacationRequest.hoursThisRequest = data[0].hoursThisRequest;
             $rootScope.vacationRequest.approvers = data[0].approvers;
             $rootScope.vacationRequest.requestComments = data[0].requestComments;
-            $rootScope.vacationRequest.groupName = data[0].GroupName;
+            $rootScope.vacationRequest.groupName = data[0].groupName;
             $rootScope.vacationRequest.requestID = data[0].requestID;
             $rootScope.vacationRequest.unid = data[0][unidStr];
 

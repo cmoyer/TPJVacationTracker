@@ -144,13 +144,12 @@
                 </thead>
                 <tbody ng-repeat="x in myVacationRequests | filter:query">
                 <tr ng-click="openRequest(x.requestID)">
-                    <td>{{x.selectedDates}}</td>
+                    <td>{{x.datesThisRequest}}</td>
                     <td>{{x.numberOfDays}}</td>
                     <td>{{x.hoursThisRequest}}</td>
                     <td>{{x.date}}</td>
                     <td>{{x.status}}</td>
                     <td>{{x.requestComments}}</td>
-                    <!--<td>This is a test column to see how the table responds when there is a large comment.</td>-->
                 </tr>
                 </tbody>
             </table>
