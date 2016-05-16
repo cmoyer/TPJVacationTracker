@@ -36,7 +36,7 @@
                 </a>
             </li>
 
-            <li ng-hide="isNew() || isTaken() || isCanceled()">
+            <li ng-show="isApproved()">
                 <a href="#" ng-click="cancelVacationRequest()">
                     <span class="glyphicons glyphicons-ban-circle" aria-hidden="true"></span> Cancel
                 </a>

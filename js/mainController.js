@@ -65,6 +65,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
     $scope.isNew = isNew;
     $scope.isSaved = isSaved;
     $scope.isSubmitted = isSubmitted;
+    $scope.isApproved = isApproved;
     $scope.isTaken = isTaken;
     $scope.isApprover = isApprover;
     $scope.isCanceled = isCanceled;
@@ -89,6 +90,11 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
 
     // TODO: General changes
+    // 1. Bring up issue with readers fields for creating a Vacation Profile from here
+    //      Solution?: Create a document that an agent can pick up and create the profile.
+    //
+    // 2. Add a clear selection button to the request form.
+
 
     
     function initialize(){
@@ -153,7 +159,6 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
         // on load of the page, get the information for the currently authenticated user
         getUserData();
-
 
         // on load of the page, get the System Defaults data
         getSystemDefaults();
@@ -444,6 +449,88 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
     }
 
+    function getHoursForEachYear(requestedDates, status){
+        var thisYearsHours = 0;
+        var nextYearsHours = 0;
+        var currentdate = new Date();
+        var thisYear = currentdate.getFullYear();
+        var nextYear = thisYear + 1;
+        var tmpHours;
+
+        // check to see which years are included in this request
+        for (var i=0; i < requestedDates.length; i++){
+            var selectedDate = new Date(convertStrToDate(requestedDates[i].name));
+            var selectedYear = selectedDate.getFullYear();
+
+            if (requestedDates[i].value == "Whole"){
+                tmpHours = 8;
+            } else {
+                tmpHours = 4;
+            }
+
+            if (selectedYear == thisYear){
+                thisYearsHours += tmpHours;
+            } else if(selectedYear == nextYear){
+                nextYearsHours += tmpHours;
+            }
+        }
+
+        switch (status) {
+            case "Submitted":
+                if (thisYearsHours != 0){
+                    updateVacationProfile(thisYear, thisYearsHours, 0, 0);
+                    $timeout(gotoMyRequests(), 2000);
+                }
+
+                if (nextYearsHours != 0){
+                    updateVacationProfile(nextYear, nextYearsHours, 0, 0);
+                    $timeout(gotoMyRequests(), 2000);
+                }
+                break;
+
+            case "Approved":
+                if (thisYearsHours != 0){
+                    updateVacationProfile(thisYear, -thisYearsHours, thisYearsHours, thisYearsHours);
+                }
+
+                if (nextYearsHours != 0){
+                    updateVacationProfile(nextYear, -thisYearsHours, nextYearsHours, nextYearsHours);
+                }
+                break;
+
+            case "Rejected":
+                if (thisYearsHours != 0){
+                    updateVacationProfile(thisYear, -thisYearsHours, 0, thisYearsHours);
+                }
+
+                if (nextYearsHours != 0){
+                    updateVacationProfile(nextYear, -nextYearsHours, 0, nextYearsHours);
+                }
+                break;
+
+            case "Canceled":
+                if (thisYearsHours != 0){
+                    if($rootScope.vacationRequest.status == "Submitted"){
+                        updateVacationProfile(thisYear, -thisYearsHours, 0, thisYearsHours);
+                    } else {
+                        updateVacationProfile(thisYear, 0, -thisYearsHours, thisYearsHours);
+                    }
+
+                }
+
+                if (nextYearsHours != 0){
+                    if($rootScope.vacationRequest.status == "Submitted"){
+                        updateVacationProfile(nextYear, -nextYearsHours, 0, nextYearsHours);
+                    } else {
+                        updateVacationProfile(nextYear, 0, -nextYearsHours, nextYearsHours);
+                    }
+
+                }
+                break;
+        }
+
+
+    }
     function checkForOverage(requestedDates){
         var thisYearsHours = 0;
         var nextYearsHours = 0;
@@ -484,10 +571,11 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
             }
         }
 
-        if (needToCreateNextYear == true){
-            createVacationProfile(nextYear, $rootScope.empNotesName);
-            getVacationProfile();
-        }
+        //TODO: have a discussion regarding this
+        // if (needToCreateNextYear == true){
+        //     createVacationProfile(nextYear, $rootScope.empNotesName);
+        //     getVacationProfile();
+        // }
 
 
 
@@ -504,27 +592,29 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
         }
 
+
+
         if (thisYearsHours > thisYearRemaining){
             overage = true;
         } else if (nextYearsHours > nextYearRemaining){
             overage = true;
         }
 
-        // if there is an overage on either document, prompt the user and ask if they would still like to save
 
         return overage;
 
 
     }
 
-
+    //TODO: If overage, provide a dialog for the user to read
+    // then when they press the ok button, that will take
+    // them to their requests
     function submitVacationRequest(){
         var readyToSubmit = $rootScope.vacationRequest.unid;
         if (readyToSubmit != null) {
 
             var isOverage = checkForOverage($rootScope.vacationRequest.requestedDates);
 
-            alert(isOverage);
 
             var data = {
                 'STATUS': "Submitted"
@@ -535,13 +625,27 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
                 // console.log(response);
             });
 
-            createVacationDayDocuments();
+            // createVacationDayDocuments();
+            createVacationDayDocuments()
+                .then(function(){
+                    // THIS NEEDS TO BE HERE TO GET THE UNID OF THE LOTUS DOCUMENT BECAUSE WE ARE NO LONGER CLOSING THE FORM.
+                    // alert("here");
+                    // $timeout(openRequest($rootScope.vacationRequest.requestID), 2000);
+                    $timeout( function(){
+                        getHoursForEachYear($rootScope.vacationRequest.requestedDates, "Submitted");
 
-            //calculate hours
+                    }, 200);
+                })
+                .error(function(){
+                    // alert("in error");
+                    // $timeout(openRequest($rootScope.vacationRequest.requestID), 2000);
+                    $timeout( function(){
+                        getHoursForEachYear($rootScope.vacationRequest.requestedDates, "Submitted");
+                    }, 200);
+                });
+            // $timeout(getHoursForEachYear($rootScope.vacationRequest.requestedDates, "Submitted"), 2000);
 
 
-
-            $timeout(gotoMyRequests(), 2000);
         } else {
             $scope.modal.title = "Unable to Submit";
             $scope.modal.body = "You need to save the Vacation Request before you submit it.";
@@ -554,12 +658,17 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         }
     }
 
-    //TODO: update Vacation Profile Hours here cancel
+
     function cancelVacationRequest(){
         promptForComments("Reasons for Canceling Request", "cancel");
+
+        // getHoursForEachYear($rootScope.vacationRequest.requestedDates, "Canceled");
+
+
+
     }
 
-    //TODO: update Vacation Profile Hours here approve
+
     function approveVacationRequest(){
         var data = {
             'STATUS': "Approved"
@@ -568,15 +677,19 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
         $http.patch(dataPUT + $rootScope.vacationRequest.unid + "?form=Vacation%20Request", data).then(function (response) {
             // console.log(response);
-            gotoMyRequests();
+            // gotoMyRequests();
         });
 
+        getHoursForEachYear($rootScope.vacationRequest.requestedDates, "Approved");
+        $timeout(gotoMyRequests(), 2000);
 
     }
 
-    //TODO: update Vacation Profile Hours here rejected
     function rejectVacationRequest(){
         promptForComments("Reasons for Rejecting Request", "reject");
+
+        // getHoursForEachYear($rootScope.vacationRequest.requestedDates, "Rejected");
+
     }
     
     function promptForComments(title, type){
@@ -712,11 +825,18 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
                     break;
             }
             $http.patch(dataPUT + $rootScope.vacationRequest.unid + "?form=Vacation%20Request", data).then(function (response) {
-                // console.log(response);
+                if (type == "cancel"){
+                    getHoursForEachYear($rootScope.vacationRequest.requestedDates, "Canceled");
+                    $timeout(gotoMyRequests(), 2000);
+                } else {
+                    getHoursForEachYear($rootScope.vacationRequest.requestedDates, "Rejected");
+                    $timeout(gotoMyRequests(), 2000);
+                }
+
             });
 
             $('#commentsModal').modal('hide');
-            gotoMyRequests();
+            // gotoMyRequests();
         }
     }
 
@@ -746,6 +866,15 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
     function isNew(){
         var currStatus = $rootScope.vacationRequest.status;
         if (currStatus == "New" || currStatus == null) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    function isApproved(){
+        var currStatus = $rootScope.vacationRequest.status;
+        if (currStatus == "Approved") {
             return true;
         } else {
             return false;
@@ -865,23 +994,42 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         });
     }
 
-    //TODO: Update the hours on a vacation profile
-    function updateVacationProfile(year, hoursSubmitted, hoursApproved, hoursRejected, hourscanceled){
+    function updateVacationProfile(year, hoursSubmitted, hoursApproved, hoursCanceledOrRejected){
 
         var unidForYear;
+        var currRequested;
+        var currApproved;
+        var currRemaining;
+        var currTaken;
+
         for(var i = 0; i < $rootScope.vacationProfile.length; i++){
             if($rootScope.vacationProfile[i].Year == year){
-                alert("we found it")
                 unidForYear = $rootScope.vacationProfile[i][unidStr];
-                alert(unidForYear);
+                currRequested = $rootScope.vacationProfile[i].HoursRequested;
+                currApproved = $rootScope.vacationProfile[i].HoursApproved;
+                currRemaining = $rootScope.vacationProfile[i].HoursRemaining;
+                currTaken = $rootScope.vacationProfile[i].HoursTaken;
             }
         }
 
+        // calculate the changes
+        var newSubmitted = currRequested + hoursSubmitted;
+        var newApproved = currApproved + hoursApproved;
+        var newRemaining = currRemaining - newSubmitted - newApproved - currTaken + hoursCanceledOrRejected;
+
+        // now update the values and patch the document
+        var data = {
+            'HoursRequested': newSubmitted,
+            'HoursApproved': newApproved,
+            'HoursRemaining': newRemaining
+        };
+
+        console.log("newSubmitted: " + newSubmitted);
+        console.log("newApproved: " + newApproved);
+        console.log("newRemaining: " + newRemaining);
+
         
-
-
-
-        $http.patch(dataPUT + $rootScope.vacationProfile.unid + "?form=Vacation%20Request", data).then(function (response) {
+        $http.patch(dataPUT + unidForYear + "?form=Vacation%20Profile", data).then(function (response) {
             console.log(response);
         });
     }
