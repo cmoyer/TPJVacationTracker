@@ -1076,19 +1076,21 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
             // bubbles. Maybe we want to store an array of the dates on the request rather than having to look up
             // the dates?
             for(var i = 0; i < data.length; i++){
-                var newEvent = {};
-                newEvent.title = data[i].empName;
-                newEvent.start = new Date(data[i].startDate);
-                var tmpEnd = new Date(data[i].endDate);
-                newEvent.end = tmpEnd.setDate(tmpEnd.getDate() + 1);
-                newEvent.allDay = true;
-                //newEvent.color = "purple";
-                // $('#calendar').fullCalendar( 'renderEvent', newEvent );
-                eventArray.push(newEvent);
+                var datesArray = data[i].datesThisRequest.split(", ");
+                for(var j=0; j< datesArray.length; j++){
+                    var newEvent = {};
+                    newEvent.title = data[i].empName;
+                    newEvent.start = new Date(datesArray[j]);
+                    var tmpEnd = new Date(datesArray[j]);
+                    newEvent.end = tmpEnd.setDate(tmpEnd.getDate() + 1);
+                    newEvent.allDay = true;
+                    //newEvent.color = "purple";
+                    // $('#calendar').fullCalendar( 'renderEvent', newEvent );
+                    eventArray.push(newEvent);
+                }
             }
             // console.log("length: " + eventArray.length);
             $scope.events = eventArray;
-
 
         }).
         error(function(data, status, headers, config) {
