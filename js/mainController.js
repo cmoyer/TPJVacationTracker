@@ -88,6 +88,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
     initialize();
 
 
+    // TODO: General changes
 
     
     function initialize(){
@@ -875,6 +876,8 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
                 alert(unidForYear);
             }
         }
+
+        
 
 
 

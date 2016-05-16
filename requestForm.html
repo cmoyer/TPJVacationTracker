@@ -163,7 +163,7 @@
             <form action="#" id="mainform" method="get" name="mainform">
                 <!--<table id="myForm" class="table table-striped table-condensed"></table>-->
                 <table id="myForm" class="table table-hover" >
-                    <tr ng-repeat="day in vacationRequest.requestedDates">
+                    <tr ng-repeat="day in vacationRequest.requestedDates" ng-hide="!isNew()">
                         <td>{{day.name}}</td>
                         <td>
                             <label><input type="radio" name="{{day.name}}" ng-model ="day.value"
@@ -179,6 +179,10 @@
                             <label><input type="radio" name="{{day.name}}" ng-model = "day.value" value="Afternoon"
                                           ng-change ="recalculateHours()" ng-disabled="!isNew()"> Afternoon</label>
                         </td>
+                    </tr>
+
+                    <tr ng-repeat="day in vacationRequest.requestedDates" ng-hide="isNew()">
+                        <td>{{day.name}} - <b>{{day.value}}</b></td>
                     </tr>
                 </table>
             </form>

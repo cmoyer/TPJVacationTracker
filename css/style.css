@@ -256,7 +256,7 @@ select[disabled] {
     padding-bottom: 30px;
 
     /* This is to prevent us from having to scroll to see our Vacation Hours on high (see: 4K) resolutions */
-    max-width:2000px;
+    max-width:1800px;
 }
 
 #navLinksContainer{
@@ -343,7 +343,7 @@ select[disabled] {
     padding-left: 30px;
     padding-bottom: 50px;
 
-    max-width:1400px;
+    max-width:1300px;
 }
 
 
