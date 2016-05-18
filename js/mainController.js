@@ -53,10 +53,10 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
     $scope.updateVacationProfile = updateVacationProfile;
     $scope.getRequest = getRequest;
     $scope.openRequest = openRequest;
-    // $scope.recalculateDates = recalculateDates;
     $scope.recalculateHours = recalculateHours;
     $scope.addComments = addComments;
     $scope.hasComments = hasComments;
+    $scope.requestHasComments = requestHasComments;
     $scope.promptForComments = promptForComments;
     $scope.cancelComments = cancelComments;
     var ismobi = navigator.userAgent.match(/Mobi/i);
@@ -80,6 +80,9 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
     $scope.deleteVacationRequest = deleteVacationRequest;
     $scope.createVacationDayDocuments = createVacationDayDocuments;
     $scope.deleteVacationDays = deleteVacationDays;
+    $scope.clearDateFromRequest = clearDateFromRequest;
+    $scope.adminClearDateFromRequest = adminClearDateFromRequest;
+    $scope.adminTakenRequest = adminTakenRequest;
 
     //============================================================================
     // BEGIN ANGULAR INITIALIZATION
@@ -90,10 +93,8 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
 
     // TODO: General changes
-    // 1. Bring up issue with readers fields for creating a Vacation Profile from here
-    //      Solution?: Create a document that an agent can pick up and create the profile.
-    //
-    // 2. Add a clear selection button to the request form.
+    // - create a new event source for just the requestForm calendar.
+    // - create an event source for the approver calendar that we can update when they select a different group
 
 
     
@@ -153,10 +154,6 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         });
 
 
-
-
-
-
         // on load of the page, get the information for the currently authenticated user
         getUserData();
 
@@ -185,12 +182,33 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
             //console.log("error");
         });
     }
-
+    
     function getHolidayList(){
         //get the System Defaults from the Domino database
         $http.get(holidayURL + "?count=" + dsMaxCount).
         success(function(data) {
             $rootScope.holidayList = data;
+
+            var eventArray = [{}];
+            eventArray.shift();
+
+            //NOTES: You will need to get the dates associated with this request and make them their own event
+            // bubbles. Maybe we want to store an array of the dates on the request rather than having to look up
+            // the dates?
+            for(var i = 0; i < $rootScope.holidayList.length; i++){
+                var dateString = StrLeft(data[i].HolidayDate, "T");
+                var tmpDate = new Date(dateString);
+                var theDate = tmpDate.setDate(tmpDate.getDate());
+                $scope.events.push({
+                    title: data[i].HolidayName,
+                    start: theDate,
+                    end: theDate,
+                    allDay: true,
+                    color: '#DAF8DD',
+                    textColor: 'black'
+                });
+            }
+
         }).
         error(function(data, status, headers, config) {
             // log error
@@ -329,6 +347,63 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         return defer.promise;
     }
 
+    function saveVacationRequestWhenTaken(){
+        var numberOfDays = $rootScope.vacationRequest.requestedDates.length;
+
+        var datesThisRequest = [];
+        var datesStr = "";
+
+        for(var i=0; i < $rootScope.vacationRequest.requestedDates.length; i++){
+            var tmpDate= new Date(convertStrToDate($rootScope.vacationRequest.requestedDates[i].name));
+            datesThisRequest.push(tmpDate.format("mm/dd/yyyy"));
+
+            if(datesStr == ""){
+                datesStr = tmpDate.format("mm/dd/yyyy").toString();
+            } else {
+                datesStr = datesStr.concat(', ' + tmpDate.format("mm/dd/yyyy").toString())
+            }
+
+        }
+        var data = {
+            'empName': $rootScope.vacationRequest.empName,
+            'date': $rootScope.vacationRequest.date,
+            'startDate': $rootScope.vacationRequest.startDate.format("mm/dd/yyyy"),
+            'endDate': $rootScope.vacationRequest.endDate.format("mm/dd/yyyy"),
+            'STATUS': $rootScope.vacationRequest.status,
+            'EMPNOTESNAME': $rootScope.vacationRequest.empNotesName,
+            'hoursThisRequest': $rootScope.vacationRequest.hoursThisRequest,
+            'Approvers': $rootScope.vacationRequest.approvers,
+            'groupName': $rootScope.vacationRequest.groupName,
+            'requestComments': $rootScope.vacationRequest.requestComments,
+            'requestID': $rootScope.vacationRequest.requestID,
+            'numberOfDays': numberOfDays,
+            'datesThisRequest': datesStr
+            // 'requestedDates': $rootScope.vacationRequest.requestedDates
+        };
+
+
+        // console.log(data);
+        $http.patch(dataPUT + $rootScope.vacationRequest.unid + "?form=Vacation%20Request", data).then(function (response){
+                // console.log(response)
+        });
+
+
+        // createVacationDayDocuments()
+        //     .then(function(){
+        //         // THIS NEEDS TO BE HERE TO GET THE UNID OF THE LOTUS DOCUMENT BECAUSE WE ARE NO LONGER CLOSING THE FORM.
+        //         // alert("here");
+        //         // $timeout(openRequest($rootScope.vacationRequest.requestID), 2000);
+        //         $timeout( function(){ $scope.openRequest($rootScope.vacationRequest.requestID); }, 200);
+        //     })
+        //     .error(function(){
+        //         // alert("in error");
+        //         // $timeout(openRequest($rootScope.vacationRequest.requestID), 2000);
+        //         $timeout( function(){ $scope.openRequest($rootScope.vacationRequest.requestID); }, 200);
+        //     });
+
+        // $timeout( function(){ $scope.openRequest($rootScope.vacationRequest.requestID); }, 200);
+    }
+
     function saveVacationRequest(){
 
         // var myFirstDeferred = $q.defer();
@@ -373,8 +448,8 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
                 $rootScope.vacationRequest.requestID = "{" + uuid2.newguid() + "}"
             }
 
-            var tmpHours = parseInt($rootScope.vacationRequest.hoursThisRequest);
-            var numberOfDays = tmpHours / 8;
+
+            var numberOfDays = $rootScope.vacationRequest.requestedDates.length;
 
             var datesThisRequest = [];
             var datesStr = "";
@@ -571,7 +646,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
             }
         }
 
-        //TODO: have a discussion regarding this
+        //TODO: create the tmpdoc that our lotus agent will process
         // if (needToCreateNextYear == true){
         //     createVacationProfile(nextYear, $rootScope.empNotesName);
         //     getVacationProfile();
@@ -669,6 +744,21 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
     }
 
 
+    function adminTakenRequest(){
+        var data = {
+            'STATUS': "Taken"
+        };
+
+
+        $http.patch(dataPUT + $rootScope.vacationRequest.unid + "?form=Vacation%20Request", data).then(function (response) {
+            // console.log(response);
+            // gotoMyRequests();
+        });
+
+
+        $timeout(gotoMyRequests(), 2000);
+    }
+
     function approveVacationRequest(){
         var data = {
             'STATUS': "Approved"
@@ -741,6 +831,8 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
     }
 
+
+
     function deleteVacationRequest(){
 
         deleteVacationDays()
@@ -783,6 +875,19 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         }
     }
 
+    function requestHasComments(){
+        // This is different than hasComments()
+        // hasComments() checks to see if the user entered comments into a dialog box.
+        // requestHasComments() is a check to see if a vacation request has comments.
+        // this is used as a hide when
+
+        if ($rootScope.vacationRequest.requestComments == null || $rootScope.vacationRequest.requestComments == ""){
+            return false;
+        } else {
+            return true;
+        }
+    }
+
     function addComments() {
 
 
@@ -808,7 +913,8 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
                     data = {
                         'STATUS': "Canceled",
-                        'requestComments': combinedComments
+                        'requestComments': combinedComments,
+                        'minRequestComments': StrRightBack(combinedComments, ":")
                     };
                     break;
 
@@ -816,7 +922,8 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
                     data = {
                         'STATUS': "Rejected",
-                        'requestComments': combinedComments
+                        'requestComments': combinedComments,
+                        'minRequestComments': StrRightBack(combinedComments, ":")
                     };
                     break;
 
@@ -899,6 +1006,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         }
     }
 
+    //TODO: Uncomment this code and remove the return true..
     function isApprover(){
         // var currUser = $rootScope.empNotesName;
         // if($rootScope.vacationRequest.approvers.length > 1){
@@ -994,6 +1102,8 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         });
     }
 
+
+    //TODO: VACATION PROFIEL
     function updateVacationProfile(year, hoursSubmitted, hoursApproved, hoursCanceledOrRejected){
 
         var unidForYear;
@@ -1071,26 +1181,19 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
             var eventArray = [{}];
             eventArray.shift();
 
-            //TODO: Each event needs to be its own bubble
-            //NOTES: You will need to get the dates associated with this request and make them their own event
-            // bubbles. Maybe we want to store an array of the dates on the request rather than having to look up
-            // the dates?
             for(var i = 0; i < data.length; i++){
                 var datesArray = data[i].datesThisRequest.split(", ");
-                for(var j=0; j< datesArray.length; j++){
-                    var newEvent = {};
-                    newEvent.title = data[i].empName;
-                    newEvent.start = new Date(datesArray[j]);
+                for(var j=0; j<datesArray.length; j++){
+
                     var tmpEnd = new Date(datesArray[j]);
-                    newEvent.end = tmpEnd.setDate(tmpEnd.getDate() + 1);
-                    newEvent.allDay = true;
-                    //newEvent.color = "purple";
-                    // $('#calendar').fullCalendar( 'renderEvent', newEvent );
-                    eventArray.push(newEvent);
+                    $scope.events.push({
+                        title: data[i].empName,
+                        start: new Date(datesArray[j]),
+                        end: tmpEnd.setDate(tmpEnd.getDate() + 1),
+                        allDay: true
+                    });
                 }
             }
-            // console.log("length: " + eventArray.length);
-            $scope.events = eventArray;
 
         }).
         error(function(data, status, headers, config) {
@@ -1132,6 +1235,8 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
         // console.log($rootScope);
     }
+
+
 
     function getRequest(id){
         var requestString = vacationRequestsbyIDURL + "?keys=" + id + "&keysexactmatch=true&count=" + dsMaxCount;
@@ -1213,76 +1318,117 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
     }
 
 
+    // TODO: Admin Remove Date from Vacation Request
+    // This will be just like the clear button, but we need will also need to give the user their hours back on their
+    // Vacation Profile.
 
-    // function recalculateDates(){
-    //
-    //     if(isRequestValid() == true) {
-    //         $rootScope.vacationRequest.requestedDates = [{}];
-    //         $rootScope.vacationRequest.requestedDates.shift();
-    //         $rootScope.vacationRequest.hoursThisRequest = 0;
-    //
-    //         //we need to gather all of the days that aren't weekends and store them in an array
-    //         var dateArray;
-    //         var startDate = $rootScope.vacationRequest.startDate;
-    //         var endDate = $rootScope.vacationRequest.endDate;
-    //         dateArray = getDates(startDate, endDate);
-    //
-    //         $rootScope.vacationRequest.startDate = startDate;
-    //         $rootScope.vacationRequest.endDate = endDate;
-    //
-    //
-    //         //get the weekdays from the dateArray and store them in this array.
-    //         var vacationDays = [];
-    //         var arrayLength = dateArray.length;
-    //         for (var i = 0; i < arrayLength; i++) {
-    //             var selectedDate = dateArray[i];
-    //             var day = selectedDate.getDay();
-    //             if (day != 0 && day != 6) {
-    //                 vacationDays.push(selectedDate);
-    //             }
-    //         }
-    //
-    //         // Now that we have the dates, dynamically create the form.
-    //
-    //         //lets format the dates..
-    //         var formattedVacationDays = [];
-    //         for (var x = 0; x < vacationDays.length; x++) {
-    //             var formattedDate = dateFormat(vacationDays[x], "fullDate");
-    //             formattedVacationDays.push(formattedDate);
-    //         }
-    //
-    //         //for each date, add to our array of objects
-    //         for (var j = 0; j < formattedVacationDays.length; j++) {
-    //             var tmpObject = {
-    //                 "name": formattedVacationDays[j],
-    //                 "value": "Whole"
-    //             }
-    //             $rootScope.vacationRequest.requestedDates.push(tmpObject);
-    //         }
-    //         $rootScope.vacationRequest.hoursThisRequest = $rootScope.vacationRequest.requestedDates.length * 8;
-    //     }
-    // }
+    function adminClearDateFromRequest (selectedDate){
+        var selectedDateValue = $rootScope.vacationRequest.requestedDates[selectedDate].value;
+        var selectedDateName = $rootScope.vacationRequest.requestedDates[selectedDate].name;
+        var theDate = new Date(convertStrToDate(selectedDateName));
+        var theYear = theDate.getFullYear();
 
+        var hours = 0;
+        if (selectedDateValue == "Whole"){
+            hours = 8;
+            $rootScope.vacationRequest.hoursThisRequest -= hours;
+        } else {
+            hours = 4;
+            $rootScope.vacationRequest.hoursThisRequest -= hours;
+        }
+
+
+        var selectedUNID = $rootScope.vacationRequest.requestedDates[selectedDate].unid;
+        var deleteString = dataPUT + "/" + selectedUNID;
+        $http.delete(deleteString).
+        success(function(data){
+
+        }).
+        error(function(data, status, headers, config){
+
+        });
+
+
+        $rootScope.vacationRequest.requestedDates.splice(selectedDate,1);
+
+
+        //we do a second check here because we don't want to save the document until we have spliced the array.
+        //but we also don't want to delete the day documents after we splice because it will throw an error
+        saveVacationRequestWhenTaken(hours);
+
+        // //TODO: do me
+        // now we need to take the value of hours from taken and put it in remaining
+        for (var i=0; i < $rootScope.vacationProfile.length; i++){
+            if ($rootScope.vacationProfile[i].Year == theYear){
+               var tmpUNID = $rootScope.vacationProfile[i][unidStr];
+                var data = {
+                    'HoursTaken': $rootScope.vacationProfile[i].HoursTaken - hours,
+                    'HoursRemaining': $rootScope.vacationProfile[i].HoursRemaining + hours
+                };
+
+                console.log(tmpUNID);
+
+
+                $http.patch(dataPUT + tmpUNID + "?form=Vacation%20Profile", data).then(function (response) {
+                    console.log(response);
+                });
+
+            }
+        }
+
+
+    }
+
+
+    function clearDateFromRequest(selectedDate){
+        var selectedDateValue = $rootScope.vacationRequest.requestedDates[selectedDate].value;
+
+
+        if (selectedDateValue == "Whole"){
+            $rootScope.vacationRequest.hoursThisRequest -= 8;
+        } else {
+            $rootScope.vacationRequest.hoursThisRequest -= 4;
+        }
+
+        if(isSaved() == true){
+            var selectedUNID = $rootScope.vacationRequest.requestedDates[selectedDate].unid;
+            var deleteString = dataPUT + "/" + selectedUNID;
+            $http.delete(deleteString).
+            success(function(data){
+
+            }).
+            error(function(data, status, headers, config){
+
+            });
+        }
+
+        $rootScope.vacationRequest.requestedDates.splice(selectedDate,1);
+
+
+        //we do a second check here because we don't want to save the document until we have spliced the array.
+        //but we also don't want to delete the day documents after we splice because it will throw an error
+        if(isSaved() == true){
+            saveVacationRequest();
+        }
+
+    }
 
     function recalculateHours(){
         var myForm = $window.document.getElementById('myForm');
         var myElements = myForm.getElementsByTagName("input");
         var total = 0;
-        var hrs = 0;
 
-        var selectedDays = [];
-        for (i=0; i<myElements.length; i++){
-            if (myElements[i].checked == true){
-                selectedDays.push(myElements[i]);
+        // var selectedDays = [];
+        for (var i=0; i<myElements.length; i++){
+            if (myElements[i].checked === true){
+                // selectedDays.push(myElements[i]);
                 if (myElements[i].value == "Whole"){
-                    hrs = 8;
+                    total += 8;
                 } else {
-                    hrs = 4;
+                    total += 4;
                 }
-                total += hrs;
             }
         }
-
         $rootScope.vacationRequest.hoursThisRequest = total;
 
     }
@@ -1296,47 +1442,6 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         
 
         $window.location.href = "myRequests.html";
-    }
-
-
-    function isRequestValid(){
-        var startDate = $rootScope.vacationRequest.startDate;
-        var endDate = $rootScope.vacationRequest.endDate;
-
-        if (startDate == null){
-            $scope.modal.title = "Field Validation Error";
-            $scope.modal.body = "The Start Date cannot be blank.";
-            $scope.modal.buttons = [];
-            var button1 = {};
-            button1.label = "OK";
-            button1.callback = "";
-            $scope.modal.buttons.push(button1);
-            $('#myModal').modal('show');
-            return false;
-        } else if (endDate == null){
-            $scope.modal.title = "Field Validation Error";
-            $scope.modal.body = "The End Date cannot be blank.";
-            $scope.modal.buttons = [];
-            var button1 = {};
-            button1.label = "OK";
-            button1.callback = "";
-            $scope.modal.buttons.push(button1);
-            $('#myModal').modal('show');
-            return false;
-        } else if (startDate > endDate) {
-            $scope.modal.title = "Field Validation Error";
-            $scope.modal.body = "The Start Date cannot come after the End Date.";
-            $scope.modal.buttons = [];
-            var button1 = {};
-            button1.label = "OK";
-            button1.callback = "";
-            $scope.modal.buttons.push(button1);
-            $('#myModal').modal('show');
-            return false;
-        } else {
-            return true;
-        }
-
     }
 
 
@@ -1379,6 +1484,29 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
     function convertStrToDate(strDate){
         return strDate.substr(strDate.indexOf(",") + 1);
     }
+    
+    function isHoliday(selectedDate, holidayList){
+        var tmpSelectedDate = new Date(selectedDate);
+        var selectedDay = tmpSelectedDate.getDate();
+        var selectedMonth = tmpSelectedDate.getMonth()+1;
+        var selectedYear = tmpSelectedDate.getFullYear();
+        var selectedDateStr = selectedMonth + "/" + selectedDay + "/" + selectedYear;
+       
+        for(var i = 0; i < holidayList.length; i++){
+            var dateString = StrLeft(holidayList[i].HolidayDate, "T");
+            var tmpDate = new Date(dateString);
+            var holidayDay = tmpDate.getDate()+1;
+            var holidayMonth = tmpDate.getMonth()+1;
+            var holidayYear = tmpDate.getFullYear();
+            var holidayDateStr = holidayMonth + "/" + holidayDay + "/" + holidayYear;
+
+            if (holidayDateStr == selectedDateStr){
+                return true;
+            }
+        }
+
+        return false;
+    }
 
 
 //     // *********************************************
@@ -1396,13 +1524,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
 
     /* event source that calls a function on every view switch */
-    $scope.eventsF = function (start, end, timezone, callback) {
-        var s = new Date(start).getTime() / 1000;
-        var e = new Date(end).getTime() / 1000;
-        var m = new Date(start).getMonth();
-        var events = [{title: 'Feed Me ' + m,start: s + (50000),end: s + (100000),allDay: false, className: ['customFeed']}];
-        callback(events);
-    };
+    //$scope.eventsF = $rootScope.holidayList;
 
     /* alert on eventClick */
     $scope.alertOnEventClick = function( date, jsEvent, view){
@@ -1559,7 +1681,9 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
                     var selectedDate = dateArray[i];
                     var day = selectedDate.getDay();
                     if (day != 0 && day != 6) {
-                        vacationDays.push(selectedDate);
+                        if (isHoliday(selectedDate, $rootScope.holidayList) == false){
+                            vacationDays.push(selectedDate);
+                        }
                     }
                 }
 
@@ -1605,12 +1729,9 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
                     }
                 });
 
-                //TODO: We don't have to actually do this conversion since there can be gaps
-
                 $rootScope.vacationRequest.requestedDates = tmpRequestDates;
                 $rootScope.vacationRequest.hoursThisRequest = $rootScope.vacationRequest.requestedDates.length * 8;
 
-                console.log(tmpRequestDates);
                 var length = tmpRequestDates.length;
                 var tmpStartDate = new Date(convertStrToDate(tmpRequestDates[0].name));
                 var tmpEndDate = new Date(convertStrToDate(tmpRequestDates[length-1].name));
@@ -1622,8 +1743,8 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         }
     };
 
-    $scope.eventSources = [$scope.events, $scope.eventSource, $scope.eventsF];
-    $scope.eventSources2 = [$scope.calEventsExt, $scope.eventsF, $scope.events];
+    $scope.eventSources = [$scope.events, $scope.eventSource];
+    $scope.eventSources2 = [$scope.events];
 
 
 

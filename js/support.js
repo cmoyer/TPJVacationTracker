@@ -84,7 +84,7 @@ function logoutUser(){
     var currURL = window.location;
     var redirectURL = "https://www.pjdick.com/tpjwebsite.nsf/pngMapsLogout?openPage";
     //window.location = dataURL + "?Logout&RedirectTo=" + currURL;
-    window.location = "//www.pjdick.com/pngrestoration.nsf" + "?Logout&RedirectTo=" + redirectURL;
+    window.location = "//www.pjdick.com/TPJVacationTracker.nsf" + "?Logout&RedirectTo=" + redirectURL;
 }
 
 function refreshIframe(iframeId) {

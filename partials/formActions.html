@@ -7,9 +7,6 @@
 <div id="actionButtons">
     <div class="pull-right">
         <ul class="nav navbar-nav navbar-right action-bar">
-            <li id="statusButton">
-                {{vacationRequest.status}}
-            </li>
 
             <li ng-show="isNew()">
                 <a href="#" ng-click="saveVacationRequest()">
@@ -57,6 +54,12 @@
             <li ng-show="isSaved()">
                 <a href="#" ng-click="deleteVacationRequest()">
                     <span class="glyphicons glyphicons-floppy-save" aria-hidden="true"></span> Admin Delete
+                </a>
+            </li>
+
+            <li ng-show="isSaved()">
+                <a href="#" ng-click="adminTakenRequest()">
+                    <span class="glyphicons glyphicons-floppy-save" aria-hidden="true"></span> Admin Status Taken
                 </a>
             </li>
 
