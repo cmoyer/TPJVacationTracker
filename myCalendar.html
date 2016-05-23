@@ -24,11 +24,11 @@
     <script src="FullCalendar/js/fullcalendar.js"></script>
     <link href="FullCalendar/css/fullcalendar.css" rel="stylesheet">
 
+
     <!--Angular-->
     <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.js"></script>
     <script src="angular/angular-resource.js"></script>
     <script src="angular/angular-route.min.js"></script>
-
 
     <script src="js/calendar.js"></script>
 
@@ -43,12 +43,12 @@
     <script src="js/support.js"></script>
 
 
-
     <!--Our Stylesheets-->
     <link href="css/style.css" rel="stylesheet">
     <link href="css/select.css" rel="stylesheet">
     <link href="css/glyphicons-bootstrap.css" rel="stylesheet">
     <link href="css/glyphicons.css" rel="stylesheet">
+
 
 
 
@@ -60,6 +60,7 @@
 <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
     <div class="container-fluid" id="navLinksContainer">
 
+
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav">
@@ -68,8 +69,8 @@
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
                        aria-expanded="false">My Requests <span class="caret"></span></a>
                     <ul class="dropdown-menu">
-                        <li class="active"><a href="MyRequests.html">My Requests by Date</a></li>
-                        <li><a href="myCalendar.html">My Calendar</a></li>
+                        <li><a href="MyRequests.html">My Requests by Date</a></li>
+                        <li class="active"><a href="myCalendar.html">My Calendar</a></li>
                         <li><a href="MyGroupCalendar.html">My Group's Calendar</a></li>
                     </ul>
                 </li>
@@ -105,7 +106,7 @@
     <div id="actionLinksContainer" class="container-fluid">
         <div class="navbar-header">
             <div class="pageTitle">
-                <h4>My Vacation Requests</h4>
+                <h4>My Calendar</h4>
             </div>
         </div>
         <!-- user button -->
@@ -113,51 +114,16 @@
     </div>
 </nav>
 
-<!--Our Table-->
-<div class="container-fluid" id="tableBody">
-    <!--Our Search Bar-->
+<div id="calendarView" class="container-fluid">
     <div class="row">
-        <div class="col-sm-6">
-            <div class="input-group" id="searchBar">
-                <input  ng-model="query" type="text" class="form-control" placeholder="Search for..." >
-                <span class="input-group-btn">
-                        <button class="btn btn-default" type="button"><span class="glyphicons glyphicons-search"></span></button>
-                </span>
-            </div>
-        </div>
+       <!--<div id='calendar'></div>-->
+        <div id='calendar' class="calendar" ng-model="eventSources" calendar="myCalendar1"
+             ui-calendar="uiConfig.groupCalendar"></div>
     </div>
 
-
-
-    <!--Table-->
-    <div class="row">
-        <div class="col-md-12">
-            <table class="table table-hover " id="dataTable">
-                <thead class="thead-default">
-                <tr>
-                    <th>Dates</th>
-                    <th># of Days</th>
-                    <th>Hours</th>
-                    <th>Requested</th>
-                    <th>Status</th>
-                    <th>Comments</th>
-                </tr>
-                </thead>
-                <tbody ng-repeat="x in myVacationRequests | filter:query">
-                <tr ng-click="openRequest(x.requestID)">
-                    <td class="col-md-4">{{x.datesThisRequest}}</td>
-                    <td class="col-md-1">{{x.numberOfDays}}</td>
-                    <td class="col-md-1">{{x.hoursThisRequest}}</td>
-                    <td class="col-md-1">{{x.date}}</td>
-                    <td class="col-md-1">{{x.status}}</td>
-                    <td class="col-md-3">{{x.minRequestComments}}</td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <!--We can place our legend in this row?-->
+    <div class="row"></div>
 </div>
-
 
 <footer class="navbar  navbar-fixed-bottom footer">
     <div class="container-fluid">

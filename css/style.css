@@ -255,8 +255,12 @@ select[disabled] {
     padding-left: 30px;
     padding-bottom: 30px;
 
+
     /* This is to prevent us from having to scroll to see our Vacation Hours on high (see: 4K) resolutions */
     max-width:1800px;
+
+
+
 }
 
 #navLinksContainer{
@@ -372,6 +376,7 @@ select[disabled] {
 /*---------------------------------------------*/
 /* Calendar Views  */
 /*---------------------------------------------*/
+
 
 #calendarView{
     padding-top: 10px;
@@ -864,6 +869,17 @@ li.status {
 }
 
 
+
+@media (max-height: 767px){
+    #formBody{
+        max-height: 500px;
+    }
+
+    #calendarView{
+        max-height: 100%;
+    }
+}
+
 /* Small Devices, Tablets */
 @media only screen and (max-width : 767px) {
     .pageTitle {
@@ -876,6 +892,7 @@ li.status {
     .navbar-default .navbar-nav .open .dropdown-menu > li > a:hover {
         color: #FBB040;
     }
+
 }
 
 #statusButton {

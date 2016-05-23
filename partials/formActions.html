@@ -33,7 +33,7 @@
                 </a>
             </li>
 
-            <li ng-show="isApproved()">
+            <li ng-show="isSubmitted() || isApproved()">
                 <a href="#" ng-click="cancelVacationRequest()">
                     <span class="glyphicons glyphicons-ban-circle" aria-hidden="true"></span> Cancel
                 </a>

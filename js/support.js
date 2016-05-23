@@ -82,9 +82,10 @@ function orientationChange() {
 function logoutUser(){
     //log the current user out and then redirect them
     var currURL = window.location;
-    var redirectURL = "https://www.pjdick.com/tpjwebsite.nsf/pngMapsLogout?openPage";
+    var redirectURL = "https://www.pjdick.com/tpjwebsite.nsf/TPJVacationTrackerLogout?openPage";
+    // var redirectURL = "http://www.pjdick.com/TPJVacationTracker/myRequests.html";
     //window.location = dataURL + "?Logout&RedirectTo=" + currURL;
-    window.location = "//www.pjdick.com/TPJVacationTracker.nsf" + "?Logout&RedirectTo=" + redirectURL;
+    window.location = "//www.pjdick.com/VacationTracker.nsf" + "?Logout&RedirectTo=" + redirectURL;
 }
 
 function refreshIframe(iframeId) {

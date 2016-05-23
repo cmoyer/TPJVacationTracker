@@ -69,6 +69,7 @@
                        aria-expanded="false">My Requests <span class="caret"></span></a>
                     <ul class="dropdown-menu">
                         <li><a href="MyRequests.html">My Requests by Date</a></li>
+                        <li><a href="myCalendar.html">My Calendar</a></li>
                         <li><a href="MyGroupCalendar.html">My Group's Calendar</a></li>
                     </ul>
                 </li>
@@ -150,13 +151,13 @@
                 </thead>
                 <tbody ng-repeat="x in myVacationRequestsToApprove | filter:query">
                 <tr ng-click="openRequest(x.requestID)">
-                    <td>{{x.empName}}</td>
-                    <td>{{x.selectedDates}}</td>
-                    <td>{{x.numberOfDays}}</td>
-                    <td>{{x.hoursThisRequest}}</td>
-                    <td>{{x.date}}</td>
-                    <td>{{x.status}}</td>
-                    <td>{{x.requestComments}}</td>
+                    <td class="col-md-2">{{x.empName}}</td>
+                    <td class="col-md-3">{{x.datesThisRequest}}</td>
+                    <td class="col-md-1">{{x.numberOfDays}}</td>
+                    <td class="col-md-1">{{x.hoursThisRequest}}</td>
+                    <td class="col-md-1">{{x.date}}</td>
+                    <td class="col-md-1">{{x.status}}</td>
+                    <td class="col-md-3">{{x.minRequestComments}}</td>
                     <!--<td>This is a test column to see how the table responds when there is a large comment.</td>-->
                 </tr>
                 </tbody>

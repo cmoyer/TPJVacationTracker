@@ -68,7 +68,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
     $scope.isApproved = isApproved;
     $scope.isTaken = isTaken;
     $scope.isApprover = isApprover;
-    $scope.isCanceled = isCanceled;
+    $scope.isCancelled = isCancelled;
 
     // Saving and Status Changes of Requests
     $scope.saveVacationRequest = saveVacationRequest;
@@ -240,10 +240,14 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         });
     }
 
+    //TODO: Logout User
     function logoutUser(){
         //log the current user out and then redirect them
-        var currURL = window.location;
-        window.location = dataURL + "?Logout&RedirectTo=" + currURL;
+        var redirectURL = "https://www.pjdick.com/tpjwebsite.nsf/TPJVacationTrackerLogout?openPage";
+        // var redirectURL = "http://www.pjdick.com/TPJVacationTracker/myRequests.html";
+        //window.location = dataURL + "?Logout&RedirectTo=" + currURL;
+        window.location = "//www.pjdick.com/VacationTracker.nsf" + "?Logout&RedirectTo=" + redirectURL;
+        // window.location = "//www.pjdick.com/VacationTracker.nsf" + "?Logout&RedirectTo=http://www.pjdick.com/TPJVacationTracker/myRequests.html";
     }
 
     function lockDocument(){
@@ -583,7 +587,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
                 }
                 break;
 
-            case "Canceled":
+            case "Cancelled":
                 if (thisYearsHours != 0){
                     if($rootScope.vacationRequest.status == "Submitted"){
                         updateVacationProfile(thisYear, -thisYearsHours, 0, thisYearsHours);
@@ -735,9 +739,9 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
 
     function cancelVacationRequest(){
-        promptForComments("Reasons for Canceling Request", "cancel");
+        promptForComments("Reasons for Cancelling Request", "cancel");
 
-        // getHoursForEachYear($rootScope.vacationRequest.requestedDates, "Canceled");
+        // getHoursForEachYear($rootScope.vacationRequest.requestedDates, "Cancelled");
 
 
 
@@ -912,7 +916,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
                 case "cancel":
 
                     data = {
-                        'STATUS': "Canceled",
+                        'STATUS': "Cancelled",
                         'requestComments': combinedComments,
                         'minRequestComments': StrRightBack(combinedComments, ":")
                     };
@@ -933,7 +937,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
             }
             $http.patch(dataPUT + $rootScope.vacationRequest.unid + "?form=Vacation%20Request", data).then(function (response) {
                 if (type == "cancel"){
-                    getHoursForEachYear($rootScope.vacationRequest.requestedDates, "Canceled");
+                    getHoursForEachYear($rootScope.vacationRequest.requestedDates, "Cancelled");
                     $timeout(gotoMyRequests(), 2000);
                 } else {
                     getHoursForEachYear($rootScope.vacationRequest.requestedDates, "Rejected");
@@ -997,9 +1001,9 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         }
     }
 
-    function isCanceled(){
+    function isCancelled(){
         var currStatus = $rootScope.vacationRequest.status;
-        if (currStatus == "Canceled") {
+        if (currStatus == "Cancelled") {
             return true;
         } else {
             return false;
@@ -1104,7 +1108,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
 
     //TODO: VACATION PROFIEL
-    function updateVacationProfile(year, hoursSubmitted, hoursApproved, hoursCanceledOrRejected){
+    function updateVacationProfile(year, hoursSubmitted, hoursApproved, hoursCancelledOrRejected){
 
         var unidForYear;
         var currRequested;
@@ -1125,7 +1129,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         // calculate the changes
         var newSubmitted = currRequested + hoursSubmitted;
         var newApproved = currApproved + hoursApproved;
-        var newRemaining = currRemaining - newSubmitted - newApproved - currTaken + hoursCanceledOrRejected;
+        var newRemaining = currRemaining - newSubmitted - newApproved - currTaken + hoursCancelledOrRejected;
 
         // now update the values and patch the document
         var data = {
