@@ -379,11 +379,8 @@ select[disabled] {
 
 
 #calendarView{
-    padding-top: 10px;
-    padding-right: 30px;
-    padding-left: 30px;
-    padding-bottom: 50px;
-
+    padding-left: 20px;
+    padding-right: 20px;
     max-width:1300px;
 }
 
@@ -870,16 +867,6 @@ li.status {
 
 
 
-@media (max-height: 767px){
-    #formBody{
-        max-height: 500px;
-    }
-
-    #calendarView{
-        max-height: 100%;
-    }
-}
-
 /* Small Devices, Tablets */
 @media only screen and (max-width : 767px) {
     .pageTitle {
@@ -893,6 +880,21 @@ li.status {
         color: #FBB040;
     }
 
+}
+
+
+/* The following width settings are to ensure our calendar stays proportional and the Vacation Profile table stays on screen for 1080p and anything less than 1440 x 900
+   This only applies to desktops and laptops. */
+@media only screen and (max-height: 900px){
+    #formBody {
+        max-width:1100px;
+    }
+}
+
+@media only screen and (max-height: 1080px){
+    #formBody {
+        max-width:1500px;
+    }
 }
 
 #statusButton {

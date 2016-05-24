@@ -73,6 +73,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
     // Saving and Status Changes of Requests
     $scope.saveVacationRequest = saveVacationRequest;
     $scope.submitVacationRequest = submitVacationRequest;
+    $scope.isReadyToSubmit = isReadyToSubmit;
     $scope.approveVacationRequest = approveVacationRequest;
     $scope.rejectVacationRequest = rejectVacationRequest;
     $scope.cancelVacationRequest = cancelVacationRequest;
@@ -240,14 +241,10 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         });
     }
 
-    //TODO: Logout User
     function logoutUser(){
         //log the current user out and then redirect them
         var redirectURL = "https://www.pjdick.com/tpjwebsite.nsf/TPJVacationTrackerLogout?openPage";
-        // var redirectURL = "http://www.pjdick.com/TPJVacationTracker/myRequests.html";
-        //window.location = dataURL + "?Logout&RedirectTo=" + currURL;
         window.location = "//www.pjdick.com/VacationTracker.nsf" + "?Logout&RedirectTo=" + redirectURL;
-        // window.location = "//www.pjdick.com/VacationTracker.nsf" + "?Logout&RedirectTo=http://www.pjdick.com/TPJVacationTracker/myRequests.html";
     }
 
     function lockDocument(){
@@ -491,18 +488,11 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
             createVacationDayDocuments()
                 .then(function(){
                     // THIS NEEDS TO BE HERE TO GET THE UNID OF THE LOTUS DOCUMENT BECAUSE WE ARE NO LONGER CLOSING THE FORM.
-                    // alert("here");
-                    // $timeout(openRequest($rootScope.vacationRequest.requestID), 2000);
                     $timeout( function(){ $scope.openRequest($rootScope.vacationRequest.requestID); }, 200);
                 })
                 .error(function(){
-                    // alert("in error");
-                    // $timeout(openRequest($rootScope.vacationRequest.requestID), 2000);
                     $timeout( function(){ $scope.openRequest($rootScope.vacationRequest.requestID); }, 200);
                 });
-
-
-            // $timeout(openRequest($rootScope.vacationRequest.requestID), 500);
         }
 
 
@@ -635,11 +625,11 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
             }
         }
 
-        //TODO: create the tmpdoc that our lotus agent will process
-        // if (needToCreateNextYear == true){
-        //     createVacationProfile(nextYear, $rootScope.empNotesName);
-        //     getVacationProfile();
-        // }
+        
+        if (needToCreateNextYear == true){
+            createVacationProfile(nextYear, $rootScope.empNotesName);
+            getVacationProfile();
+        }
 
 
 
@@ -670,56 +660,60 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
     }
 
-    //TODO: If overage, provide a dialog for the user to read
-    // then when they press the ok button, that will take
-    // them to their requests
-    function submitVacationRequest(){
+    function isReadyToSubmit(){
         var readyToSubmit = $rootScope.vacationRequest.unid;
         if (readyToSubmit != null) {
-
             var isOverage = checkForOverage($rootScope.vacationRequest.requestedDates);
-
-
-            var data = {
-                'STATUS': "Submitted"
-            };
-
-
-            $http.patch(dataPUT + $rootScope.vacationRequest.unid + "?form=Vacation%20Request", data).then(function (response) {
-                // console.log(response);
-            });
-
-            // createVacationDayDocuments();
-            createVacationDayDocuments()
-                .then(function(){
-                    // THIS NEEDS TO BE HERE TO GET THE UNID OF THE LOTUS DOCUMENT BECAUSE WE ARE NO LONGER CLOSING THE FORM.
-                    // alert("here");
-                    // $timeout(openRequest($rootScope.vacationRequest.requestID), 2000);
-                    $timeout( function(){
-                        getHoursForEachYear($rootScope.vacationRequest.requestedDates, "Submitted");
-
-                    }, 200);
-                })
-                .error(function(){
-                    // alert("in error");
-                    // $timeout(openRequest($rootScope.vacationRequest.requestID), 2000);
-                    $timeout( function(){
-                        getHoursForEachYear($rootScope.vacationRequest.requestedDates, "Submitted");
-                    }, 200);
-                });
-            // $timeout(getHoursForEachYear($rootScope.vacationRequest.requestedDates, "Submitted"), 2000);
-
+            if (isOverage == true) {
+                $scope.modal.title = "Hours Overage";
+                $scope.modal.body = "This request exceeds your system calculated allotment.\n\nYour approver has" +
+                    " been notified of this overage.";
+                $scope.modal.buttons = [];
+                var button1 = {};
+                button1.label = "OK";
+                button1.callback = "";
+                $scope.modal.buttons.push(button1);
+                $('#overageModal').modal('show');
+            } else {
+                submitVacationRequest();
+            }
 
         } else {
-            $scope.modal.title = "Unable to Submit";
-            $scope.modal.body = "You need to save the Vacation Request before you submit it.";
-            $scope.modal.buttons = [];
-            var button1 = {};
-            button1.label = "OK";
-            button1.callback = "";
-            $scope.modal.buttons.push(button1);
-            $('#myModal').modal('show');
+            
         }
+    }
+
+
+    function submitVacationRequest(){
+
+        var data = {
+            'STATUS': "Submitted"
+        };
+
+
+        $http.patch(dataPUT + $rootScope.vacationRequest.unid + "?form=Vacation%20Request", data).then(function (response) {
+            // console.log(response);
+        });
+
+        // createVacationDayDocuments();
+        createVacationDayDocuments()
+            .then(function(){
+                // THIS NEEDS TO BE HERE TO GET THE UNID OF THE LOTUS DOCUMENT BECAUSE WE ARE NO LONGER CLOSING THE FORM.
+                // alert("here");
+                // $timeout(openRequest($rootScope.vacationRequest.requestID), 2000);
+                $timeout( function(){
+                    getHoursForEachYear($rootScope.vacationRequest.requestedDates, "Submitted");
+
+                }, 200);
+            })
+            .error(function(){
+                // alert("in error");
+                // $timeout(openRequest($rootScope.vacationRequest.requestID), 2000);
+                $timeout( function(){
+                    getHoursForEachYear($rootScope.vacationRequest.requestedDates, "Submitted");
+                }, 200);
+            });
+        // $timeout(getHoursForEachYear($rootScope.vacationRequest.requestedDates, "Submitted"), 2000);
     }
 
 
@@ -1432,29 +1426,27 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
     }
 
 
-    function isReadyToSubmit(requestID){
-        //get the request to see if it has a UNID - AKA: has it been saved first
-        var requestString = vacationRequestsbyIDURL + "?keys=" + requestID + "&keysexactmatch=true";
-        $http.get(requestString).
-        success(function(data) {
-            // console.log(data);
-            // $rootScope.vacationRequest.unid = data[0][unidStr];
-            var tmpUNID = data[0][unidStr];
-            if (tmpUNID != null){
-                  return true;
-            } else {
-                   return false;
-            }
-        }).
-        error(function(data, status, headers, config) {
-            // log error
-            // console.log(data, status, headers, config);
-            // console.log("ERROR");
-            return false;
-        });
-
-        // console.log("WE SHOULD NEVER GET HERE");
-    }
+    // function isReadyToSubmit(requestID){
+    //     //get the request to see if it has a UNID - AKA: has it been saved first
+    //     var requestString = vacationRequestsbyIDURL + "?keys=" + requestID + "&keysexactmatch=true";
+    //     $http.get(requestString).
+    //     success(function(data) {
+    //         var tmpUNID = data[0][unidStr];
+    //         if (tmpUNID != null){
+    //               return true;
+    //         } else {
+    //                return false;
+    //         }
+    //     }).
+    //     error(function(data, status, headers, config) {
+    //         // log error
+    //         // console.log(data, status, headers, config);
+    //         // console.log("ERROR");
+    //         return false;
+    //     });
+    //
+    //     // console.log("WE SHOULD NEVER GET HERE");
+    // }
 
 
     function containsDate(obj, list) {
