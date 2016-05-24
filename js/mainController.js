@@ -390,22 +390,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         $http.patch(dataPUT + $rootScope.vacationRequest.unid + "?form=Vacation%20Request", data).then(function (response){
                 // console.log(response)
         });
-
-
-        // createVacationDayDocuments()
-        //     .then(function(){
-        //         // THIS NEEDS TO BE HERE TO GET THE UNID OF THE LOTUS DOCUMENT BECAUSE WE ARE NO LONGER CLOSING THE FORM.
-        //         // alert("here");
-        //         // $timeout(openRequest($rootScope.vacationRequest.requestID), 2000);
-        //         $timeout( function(){ $scope.openRequest($rootScope.vacationRequest.requestID); }, 200);
-        //     })
-        //     .error(function(){
-        //         // alert("in error");
-        //         // $timeout(openRequest($rootScope.vacationRequest.requestID), 2000);
-        //         $timeout( function(){ $scope.openRequest($rootScope.vacationRequest.requestID); }, 200);
-        //     });
-
-        // $timeout( function(){ $scope.openRequest($rootScope.vacationRequest.requestID); }, 200);
+        
     }
 
     function saveVacationRequest(){
@@ -1107,7 +1092,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
     }
 
 
-    //TODO: VACATION PROFIEL
+
     function updateVacationProfile(year, hoursSubmitted, hoursApproved, hoursCancelledOrRejected){
 
         var unidForYear;
@@ -1321,8 +1306,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         $window.location.href = "requestForm.html?open&uid=" + id;
     }
 
-
-    // TODO: Admin Remove Date from Vacation Request
+    
     // This will be just like the clear button, but we need will also need to give the user their hours back on their
     // Vacation Profile.
 
@@ -1360,7 +1344,6 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         //but we also don't want to delete the day documents after we splice because it will throw an error
         saveVacationRequestWhenTaken(hours);
 
-        // //TODO: do me
         // now we need to take the value of hours from taken and put it in remaining
         for (var i=0; i < $rootScope.vacationProfile.length; i++){
             if ($rootScope.vacationProfile[i].Year == theYear){
