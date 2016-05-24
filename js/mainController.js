@@ -116,6 +116,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         $rootScope.Answers = {};
         $rootScope.group = {};
         $scope.events = [];
+        $scope.holidays = [];
         $rootScope.clickedRequest = {};
         $scope.modalResponse = "none";
         $scope.modal = {};
@@ -143,16 +144,28 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
                 $('#calendar').fullCalendar( 'addEventSource', $scope.eventSources[0]);
                 $('#calendar').fullCalendar( 'refetchEvents' );
 
-                $('#readCalendar').fullCalendar( 'removeEventSource', $scope.eventSources);
-                $('#readCalendar').fullCalendar( 'addEventSource', $scope.eventSources[0]);
+                // console.log($scope);
+            }
+        });
+
+
+        $rootScope.$watch('vacationRequest.requestedDates', function(value) {
+            if (value != null){
+
+                // $scope.eventSources4.push($rootScope.vacationRequest.requestedDates);
+
+                $('#readCalendar').fullCalendar( 'removeEventSource', $scope.eventSources4);
+                $('#readCalendar').fullCalendar( 'addEventSource', $scope.eventSources4);
                 $('#readCalendar').fullCalendar( 'refetchEvents' );
 
-                $('#editCalendar').fullCalendar( 'removeEventSource', $scope.eventSources);
-                $('#editCalendar').fullCalendar( 'addEventSource', $scope.eventSources[0]);
+                $('#editCalendar').fullCalendar( 'removeEventSource', $scope.eventSources4);
+                $('#editCalendar').fullCalendar( 'addEventSource', $scope.eventSources4);
                 $('#editCalendar').fullCalendar( 'refetchEvents' );
                 // console.log($scope);
             }
         });
+
+
 
 
         // on load of the page, get the information for the currently authenticated user
@@ -169,6 +182,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         }
 
         console.log($rootScope);
+        console.log($scope);
 
     }
 
@@ -200,7 +214,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
                 var dateString = StrLeft(data[i].HolidayDate, "T");
                 var tmpDate = new Date(dateString);
                 var theDate = tmpDate.setDate(tmpDate.getDate());
-                $scope.events.push({
+                $scope.holidays.push({
                     title: data[i].HolidayName,
                     start: theDate,
                     end: theDate,
@@ -1204,23 +1218,6 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
     }
 
 
-    function getUnidOfVacationRequest(id){
-        var requestString = vacationRequestsbyIDURL + "?keys=" + id + "&keysexactmatch=true&count=" + dsMaxCount;
-        $http.get(requestString).
-        success(function(data) {
-
-            $rootScope.vacationRequest.unid = data[0][unidStr];
-
-        }).
-        error(function(data, status, headers, config) {
-            // log error
-        });
-
-        // console.log($rootScope);
-    }
-
-
-
     function getRequest(id){
         var requestString = vacationRequestsbyIDURL + "?keys=" + id + "&keysexactmatch=true&count=" + dsMaxCount;
         $http.get(requestString).
@@ -1280,7 +1277,22 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
                     $rootScope.vacationRequest.dayUNID.push(data[i][unidStr]);
                 }
 
-                console.log($rootScope.vacationRequest.requestedDates);
+                //TODO: now loop through requestedDates and create an array of events
+                for(var j=0; j < $rootScope.vacationRequest.requestedDates.length; j++){
+                    var tmpArray = $rootScope.vacationRequest.requestedDates;
+
+                    var datesArray = tmpArray[j].name.split(", ");
+
+                    var tmpEnd = new Date(datesArray[1] + " " + datesArray[2]);
+                    console.log(tmpEnd);
+                    var tmpTitle = j + 1;
+                    $rootScope.thisRequestSource.push({
+                        title: "Day: " + tmpTitle.toString(),
+                        start: new Date(new Date(datesArray[1] + " " + datesArray[2])),
+                        end: tmpEnd.setDate(tmpEnd.getDate() + 1),
+                        allDay: true
+                    });
+                }
 
             }).
                 error(function(data,status,headers,config){
@@ -1426,29 +1438,6 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
     }
 
 
-    // function isReadyToSubmit(requestID){
-    //     //get the request to see if it has a UNID - AKA: has it been saved first
-    //     var requestString = vacationRequestsbyIDURL + "?keys=" + requestID + "&keysexactmatch=true";
-    //     $http.get(requestString).
-    //     success(function(data) {
-    //         var tmpUNID = data[0][unidStr];
-    //         if (tmpUNID != null){
-    //               return true;
-    //         } else {
-    //                return false;
-    //         }
-    //     }).
-    //     error(function(data, status, headers, config) {
-    //         // log error
-    //         // console.log(data, status, headers, config);
-    //         // console.log("ERROR");
-    //         return false;
-    //     });
-    //
-    //     // console.log("WE SHOULD NEVER GET HERE");
-    // }
-
-
     function containsDate(obj, list) {
         var i;
         for (i = 0; i < list.length; i++) {
@@ -1501,18 +1490,36 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         // currentTimezone: 'America/Chicago' // an option!
     };
 
+    $scope.mySource = {
+        // url: "http://www.google.com/calendar/feeds/usa__en%40holiday.calendar.google.com/public/basic",
+        // className: 'gcal-event',           // an option!
+        // currentTimezone: 'America/Chicago' // an option!
+    };
+
+    $scope.groupSource = {
+        // url: "http://www.google.com/calendar/feeds/usa__en%40holiday.calendar.google.com/public/basic",
+        // className: 'gcal-event',           // an option!
+        // currentTimezone: 'America/Chicago' // an option!
+    };
+
+    $rootScope.thisRequestSource = [
+        // url: "http://www.google.com/calendar/feeds/usa__en%40holiday.calendar.google.com/public/basic",
+        // className: 'gcal-event',           // an option!
+        // currentTimezone: 'America/Chicago' // an option!
+    ];
+
 
     /* event source that calls a function on every view switch */
     //$scope.eventsF = $rootScope.holidayList;
 
     /* alert on eventClick */
     $scope.alertOnEventClick = function( date, jsEvent, view){
-        $scope.alertMessage = (date.title + ' was clicked ');
-        alert($scope.alertMessage);
+        // $scope.alertMessage = (date.title + ' was clicked ');
+        // alert($scope.alertMessage);
     };
 
     $scope.consoleOnEventClick = function( date, jsEvent, view){
-        console.log(date);
+
     };
     /* alert on Drop */
     $scope.alertOnDrop = function(event, delta, revertFunc, jsEvent, ui, view){
@@ -1536,14 +1543,14 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         }
     };
     /* add custom event*/
-    $scope.addEvent = function() {
-        $scope.events.push({
-            title: 'Open Sesame',
-            start: new Date(y, m, 28),
-            end: new Date(y, m, 29),
-            className: ['openSesame']
-        });
-    };
+    // $scope.addEvent = function() {
+    //     $scope.events.push({
+    //         title: 'Open Sesame',
+    //         start: new Date(y, m, 28),
+    //         end: new Date(y, m, 29),
+    //         className: ['openSesame']
+    //     });
+    // };
     /* remove event */
     $scope.remove = function(index) {
         $scope.events.splice(index,1);
@@ -1597,7 +1604,6 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
                 center: 'title',
                 right: 'month,basicWeek,basicDay'
             },
-            eventClick: $scope.alertOnEventClick,
             eventDrop: $scope.alertOnDrop,
             eventResize: $scope.alertOnResize,
             eventRender: $scope.eventRender
@@ -1722,8 +1728,18 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         }
     };
 
-    $scope.eventSources = [$scope.events, $scope.eventSource];
-    $scope.eventSources2 = [$scope.events];
+    $scope.eventSources = [$scope.eventSource, $scope.holidays];
+
+    //This will be the current users requests
+    $scope.eventSources2 = [$scope.mySource, $scope.holidays];
+
+    //This will be an entire group's requests
+    $scope.eventSources3 = [$scope.groupSource, $scope.holidays];
+
+    //This will be a single request's days
+    $scope.eventSources4 = [$rootScope.thisRequestSource, $scope.holidays];
+
+
 
 
 
