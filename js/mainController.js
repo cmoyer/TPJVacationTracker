@@ -94,8 +94,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
 
     // TODO: General changes
-    // - create a new event source for just the requestForm calendar.
-    // - create an event source for the approver calendar that we can update when they select a different group
+    // - Allow a user to select which group to display on the Approver Calendar based on what groups they belong to.
 
 
     
@@ -121,7 +120,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         $scope.modalResponse = "none";
         $scope.modal = {};
         $scope.modal.buttons = [];
-        $rootScope.previousLocation = "";
+
        
 
 
@@ -131,42 +130,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         } else{
             $scope.isMobileDevice = true;
         }
-
-
-        //Update the Calendars
-        $rootScope.$watch('groupVacationRequests', function(value) {
-            if (value != null){
-
-                $scope.eventSources = [$scope.events];
-
-                //Update all of the calendars
-                $('#calendar').fullCalendar( 'removeEventSource', $scope.eventSources);
-                $('#calendar').fullCalendar( 'addEventSource', $scope.eventSources[0]);
-                $('#calendar').fullCalendar( 'refetchEvents' );
-
-                // console.log($scope);
-            }
-        });
-
-
-        $rootScope.$watch('vacationRequest.requestedDates', function(value) {
-            if (value != null){
-
-                // $scope.eventSources4.push($rootScope.vacationRequest.requestedDates);
-
-                $('#readCalendar').fullCalendar( 'removeEventSource', $scope.eventSources4);
-                $('#readCalendar').fullCalendar( 'addEventSource', $scope.eventSources4);
-                $('#readCalendar').fullCalendar( 'refetchEvents' );
-
-                $('#editCalendar').fullCalendar( 'removeEventSource', $scope.eventSources4);
-                $('#editCalendar').fullCalendar( 'addEventSource', $scope.eventSources4);
-                $('#editCalendar').fullCalendar( 'refetchEvents' );
-                // console.log($scope);
-            }
-        });
-
-
-
+        
 
         // on load of the page, get the information for the currently authenticated user
         getUserData();
@@ -181,10 +145,57 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
             getRequest($scope.uid);
         }
 
+        //I DON'T THINK WE NEED THIS ANYMORE
+        // //Update the Calendars
+        // $rootScope.$watch('groupVacationRequests', function(value) {
+        //     if (value != null){
+        //
+        //         //Update all of the calendars
+        //         $('#groupCalendar').fullCalendar( 'removeEventSource', $scope.eventSources3);
+        //         $('#groupCalendar').fullCalendar( 'addEventSource', $scope.eventSources3);
+        //         $('#groupCalendar').fullCalendar( 'refetchEvents' );
+        //
+        //         // console.log($scope);
+        //     }
+        // });
+        //
+        //
+        // $rootScope.$watch('vacationRequest.requestedDates', function(value) {
+        //     if (value != null){
+        //
+        //         // $scope.eventSources4.push($rootScope.vacationRequest.requestedDates);
+        //
+        //         $('#readCalendar').fullCalendar( 'removeEventSource', $scope.eventSources4);
+        //         $('#readCalendar').fullCalendar( 'addEventSource', $scope.eventSources4);
+        //         $('#readCalendar').fullCalendar( 'refetchEvents' );
+        //
+        //         $('#editCalendar').fullCalendar( 'removeEventSource', $scope.eventSources4);
+        //         $('#editCalendar').fullCalendar( 'addEventSource', $scope.eventSources4);
+        //         $('#editCalendar').fullCalendar( 'refetchEvents' );
+        //         // console.log($scope);
+        //     }
+        // });
+        //
+        // $rootScope.$watch('myVacationRequests', function(value) {
+        //     if (value != null){
+        //
+        //         //Update all of the calendars
+        //         $('#myCalendar').fullCalendar( 'removeEventSource', $scope.eventSources2);
+        //         $('#myCalendar').fullCalendar( 'addEventSource', $scope.eventSources2);
+        //         $('#myCalendar').fullCalendar( 'refetchEvents' );
+        //
+        //         // console.log($scope);
+        //     }
+        // });
+
+
+
         console.log($rootScope);
         console.log($scope);
 
     }
+
+
 
     function getSystemDefaults() {
         //get the System Defaults from the Domino database
@@ -220,7 +231,8 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
                     end: theDate,
                     allDay: true,
                     color: '#DAF8DD',
-                    textColor: 'black'
+                    textColor: 'black',
+                    stick: true
                 });
             }
 
@@ -319,6 +331,8 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
     function createVacationRequest(){
         $rootScope.clickedRequest = null;
+        $rootScope.previousLocation = $window.location;
+        alert($window.location);
         $window.location.href = "requestForm.html";
 
     }
@@ -512,8 +526,19 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
     }
 
-    //TODO: createVacationProfile(year, empNotesName)
     function createVacationProfile(year, empNotesName){
+        //create a profile request document that we will have an agent pick up, pass to our "CreateNextYear's
+        // Profile agent
+
+        var data = {
+            'empNotesName': empNotesName,
+            'year': year
+        };
+
+        $http.post(dataPOST + "?form=Profile%20Request", data).then(function (response) {
+            // console.log(response)
+        });
+
 
     }
 
@@ -609,6 +634,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         var thisYearRemaining = 0;
         var nextYearRemaining = 0;
         var overage = false;
+        var ignoreNextYearOverage = false;
 
         // check to see which years are included in this request
         for (var i=0; i < requestedDates.length; i++){
@@ -629,7 +655,6 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         }
 
         // then check to see if the user has a vacation profile for each of those years
-        // if not, throw a flag and don't continue.
         var needToCreateNextYear = true;
         if (nextYearsHours > 0){
             for (var j=0; j < $rootScope.vacationProfile.length; j++){
@@ -642,7 +667,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         
         if (needToCreateNextYear == true){
             createVacationProfile(nextYear, $rootScope.empNotesName);
-            getVacationProfile();
+            ignoreNextYearOverage = true;
         }
 
 
@@ -665,7 +690,9 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         if (thisYearsHours > thisYearRemaining){
             overage = true;
         } else if (nextYearsHours > nextYearRemaining){
-            overage = true;
+            if (ignoreNextYearOverage == false){
+                overage = true;
+            }
         }
 
 
@@ -753,7 +780,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         });
 
 
-        $timeout(gotoMyRequests(), 2000);
+        $timeout(goBack(), 2000);
     }
 
     function approveVacationRequest(){
@@ -768,7 +795,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         });
 
         getHoursForEachYear($rootScope.vacationRequest.requestedDates, "Approved");
-        $timeout(gotoMyRequests(), 2000);
+        $timeout(gotoMyApprovals(), 2000);
 
     }
 
@@ -934,7 +961,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
                     $timeout(gotoMyRequests(), 2000);
                 } else {
                     getHoursForEachYear($rootScope.vacationRequest.requestedDates, "Rejected");
-                    $timeout(gotoMyRequests(), 2000);
+                    $timeout(gotoMyApprovals(), 2000);
                 }
 
             });
@@ -1148,6 +1175,21 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         $http.get(requestString).
         success(function(data) {
             $rootScope.myVacationRequests = data;
+
+            for(var i = 0; i < data.length; i++){
+                var datesArray = data[i].datesThisRequest.split(", ");
+                for(var j=0; j<datesArray.length; j++){
+
+                    var tmpEnd = new Date(datesArray[j]);
+                    $scope.mySource.push({
+                        title: data[i].empName,
+                        start: new Date(datesArray[j]),
+                        end: tmpEnd.setDate(tmpEnd.getDate() + 1),
+                        allDay: true,
+                        stick: true
+                    });
+                }
+            }
         }).
         error(function(data, status, headers, config) {
             // log error
@@ -1183,11 +1225,12 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
                 for(var j=0; j<datesArray.length; j++){
 
                     var tmpEnd = new Date(datesArray[j]);
-                    $scope.events.push({
+                    $scope.groupSource.push({
                         title: data[i].empName,
                         start: new Date(datesArray[j]),
                         end: tmpEnd.setDate(tmpEnd.getDate() + 1),
-                        allDay: true
+                        allDay: true,
+                        stick: true
                     });
                 }
             }
@@ -1277,7 +1320,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
                     $rootScope.vacationRequest.dayUNID.push(data[i][unidStr]);
                 }
 
-                //TODO: now loop through requestedDates and create an array of events
+
                 for(var j=0; j < $rootScope.vacationRequest.requestedDates.length; j++){
                     var tmpArray = $rootScope.vacationRequest.requestedDates;
 
@@ -1286,11 +1329,12 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
                     var tmpEnd = new Date(datesArray[1] + " " + datesArray[2]);
                     console.log(tmpEnd);
                     var tmpTitle = j + 1;
-                    $rootScope.thisRequestSource.push({
+                    $scope.thisRequestSource.push({
                         title: "Day: " + tmpTitle.toString(),
                         start: new Date(new Date(datesArray[1] + " " + datesArray[2])),
                         end: tmpEnd.setDate(tmpEnd.getDate() + 1),
-                        allDay: true
+                        allDay: true,
+                        stick: true
                     });
                 }
 
@@ -1430,11 +1474,19 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         $window.location.href = "myRequests.html";
     }
 
+    function gotoMyApprovals(){
+        $window.location.href = "myApprovals.html";
+    }
+
+    function goBack(){
+        $window.location.href = $window.history.back();
+    }
+
     function closeVacationRequest(){
         //check to see if the form is saved first
         
 
-        $window.location.href = "myRequests.html";
+        $window.location.href = $window.history.back();
     }
 
 
@@ -1490,23 +1542,11 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         // currentTimezone: 'America/Chicago' // an option!
     };
 
-    $scope.mySource = {
-        // url: "http://www.google.com/calendar/feeds/usa__en%40holiday.calendar.google.com/public/basic",
-        // className: 'gcal-event',           // an option!
-        // currentTimezone: 'America/Chicago' // an option!
-    };
+    $scope.mySource = [];
 
-    $scope.groupSource = {
-        // url: "http://www.google.com/calendar/feeds/usa__en%40holiday.calendar.google.com/public/basic",
-        // className: 'gcal-event',           // an option!
-        // currentTimezone: 'America/Chicago' // an option!
-    };
+    $scope.groupSource = [];
 
-    $rootScope.thisRequestSource = [
-        // url: "http://www.google.com/calendar/feeds/usa__en%40holiday.calendar.google.com/public/basic",
-        // className: 'gcal-event',           // an option!
-        // currentTimezone: 'America/Chicago' // an option!
-    ];
+    $scope.thisRequestSource = [];
 
 
     /* event source that calls a function on every view switch */
@@ -1728,7 +1768,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         }
     };
 
-    $scope.eventSources = [$scope.eventSource, $scope.holidays];
+    //$scope.eventSources = [$scope.eventSource, $scope.holidays];
 
     //This will be the current users requests
     $scope.eventSources2 = [$scope.mySource, $scope.holidays];
@@ -1737,7 +1777,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
     $scope.eventSources3 = [$scope.groupSource, $scope.holidays];
 
     //This will be a single request's days
-    $scope.eventSources4 = [$rootScope.thisRequestSource, $scope.holidays];
+    $scope.eventSources4 = [$scope.thisRequestSource, $scope.holidays];
 
 
 
