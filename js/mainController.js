@@ -11,6 +11,7 @@ var dataPOST = domainURL + '/VacationTracker.nsf/api/data/documents';
 var dataPUT = domainURL + '/VacationTracker.nsf/api/data/documents/unid/';
 var getLocksURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/LockedRecords';
 var getGroupURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/GroupsREST';
+var getGroupByApproverURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/GroupsByApproverREST';
 var sysdefURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/SystemDefaults';
 var vacationProfileURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/VacationProfilesREST';
 var vacationRequestsbyIDURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/VacationRequestsbyIDREST';
@@ -95,7 +96,8 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
     // TODO: General changes
     // - Allow a user to select which group to display on the Approver Calendar based on what groups they belong to.
-
+    // - Finish the Approver Calendar dropdown action
+    // - Get the events to display on the calendar
 
     
     function initialize(){
@@ -108,6 +110,8 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         $rootScope.myVacationRequestsToApprove = {};
         $rootScope.groupVacationRequests = {};
         $rootScope.holidayList = {};
+        $scope.userGroups = [];
+        $scope.selectedGroup = "";
         $rootScope.vacationRequest.requestComments = "";
         $rootScope.vacationRequest.requestedDates = [{}];
         $rootScope.vacationRequest.requestedDates.shift();
@@ -147,46 +151,21 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
         //I DON'T THINK WE NEED THIS ANYMORE
         // //Update the Calendars
-        // $rootScope.$watch('groupVacationRequests', function(value) {
-        //     if (value != null){
-        //
-        //         //Update all of the calendars
-        //         $('#groupCalendar').fullCalendar( 'removeEventSource', $scope.eventSources3);
-        //         $('#groupCalendar').fullCalendar( 'addEventSource', $scope.eventSources3);
-        //         $('#groupCalendar').fullCalendar( 'refetchEvents' );
-        //
-        //         // console.log($scope);
-        //     }
-        // });
-        //
-        //
-        // $rootScope.$watch('vacationRequest.requestedDates', function(value) {
-        //     if (value != null){
-        //
-        //         // $scope.eventSources4.push($rootScope.vacationRequest.requestedDates);
-        //
-        //         $('#readCalendar').fullCalendar( 'removeEventSource', $scope.eventSources4);
-        //         $('#readCalendar').fullCalendar( 'addEventSource', $scope.eventSources4);
-        //         $('#readCalendar').fullCalendar( 'refetchEvents' );
-        //
-        //         $('#editCalendar').fullCalendar( 'removeEventSource', $scope.eventSources4);
-        //         $('#editCalendar').fullCalendar( 'addEventSource', $scope.eventSources4);
-        //         $('#editCalendar').fullCalendar( 'refetchEvents' );
-        //         // console.log($scope);
-        //     }
-        // });
-        //
-        // $rootScope.$watch('myVacationRequests', function(value) {
-        //     if (value != null){
-        //
-        //         //Update all of the calendars
-        //         $('#myCalendar').fullCalendar( 'removeEventSource', $scope.eventSources2);
-        //         $('#myCalendar').fullCalendar( 'addEventSource', $scope.eventSources2);
-        //         $('#myCalendar').fullCalendar( 'refetchEvents' );
-        //
-        //         // console.log($scope);
-        //     }
-        // });
+        $rootScope.$watch('groupVacationRequests', function(value) {
+            if (value != null){
+
+                //Update all of the calendars
+                $('#calendar').fullCalendar( 'removeEventSource', $scope.eventSources3);
+                $('#calendar').fullCalendar( 'addEventSource', $scope.eventSources3);
+                $('#calendar').fullCalendar( 'refetchEvents' );
+
+                // console.log($scope);
+            }
+        });
+
+
+
+
 
 
 
@@ -330,9 +309,6 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
 
     function createVacationRequest(){
-        $rootScope.clickedRequest = null;
-        $rootScope.previousLocation = $window.location;
-        alert($window.location);
         $window.location.href = "requestForm.html";
 
     }
@@ -1116,8 +1092,10 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         success(function(data) {
             $rootScope.vacationProfile = data;
             $rootScope.groupName = data[0].Group;
+            $scope.userGroups.push(data[0].Group);
             getUserGroup();
             getVacationRequestsByGroup(data[0].Group);
+            getAllGroupsForUser();
 
 
         }).
@@ -1216,9 +1194,10 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         $http.get(requestString).
         success(function(data) {
             $rootScope.groupVacationRequests = data;
-            
-            var eventArray = [{}];
-            eventArray.shift();
+
+            //first clear out the groupSource that holds the events
+            $scope.groupSource = [];
+            $scope.selectedGroup = group;
 
             for(var i = 0; i < data.length; i++){
                 var datesArray = data[i].datesThisRequest.split(", ");
@@ -1235,6 +1214,8 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
                 }
             }
 
+            $scope.eventSources3[0] = $scope.groupSource;
+
         }).
         error(function(data, status, headers, config) {
             // log error
@@ -1242,6 +1223,20 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
     }
 
+    function getAllGroupsForUser(){
+        var empNotesName = $rootScope.empNotesName;
+        var requestString = getGroupByApproverURL + "?keys=" + empNotesName + "&keysexactmatch=true";
+        $http.get(requestString).
+        success(function(data) {
+            for(var i=0; i < data.length; i++){
+                $scope.userGroups.push(data[i].GroupName);
+            }
+        }).
+        error(function(data, status, headers, config) {
+            // log error
+        });
+
+    }
 
     function getUserGroup(){
 
