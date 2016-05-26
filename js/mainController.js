@@ -95,9 +95,9 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
 
     // TODO: General changes
-    // - Allow a user to select which group to display on the Approver Calendar based on what groups they belong to.
-    // - Finish the Approver Calendar dropdown action
-    // - Get the events to display on the calendar
+    // - send emails (we will have to flag each document and have another 5 minute agent...)
+    // - flag Vacation Request documents on cancel after approved (so we can remove them from the user's personal
+    //     calendar)
 
     
     function initialize(){
@@ -149,7 +149,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
             getRequest($scope.uid);
         }
 
-        //I DON'T THINK WE NEED THIS ANYMORE
+        
         // //Update the Calendars
         $rootScope.$watch('groupVacationRequests', function(value) {
             if (value != null){
@@ -165,7 +165,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
 
 
-
+        
 
 
 
@@ -1332,6 +1332,10 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
                         stick: true
                     });
                 }
+
+                // For the form calendars, go to the first date in the request
+                $('#editCalendar').fullCalendar( 'gotoDate', $scope.thisRequestSource[0].start );
+                $('#readCalendar').fullCalendar( 'gotoDate', $scope.thisRequestSource[0].start );
 
             }).
                 error(function(data,status,headers,config){
