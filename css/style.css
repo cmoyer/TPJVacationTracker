@@ -243,6 +243,14 @@ select[disabled] {
     float: right;
 }
 
+#dataTable td:first-child {
+    text-align: left;
+}
+
+#dataTable th:first-child {
+    text-align: left;
+}
+
 
 
 
@@ -259,8 +267,10 @@ select[disabled] {
     /* This is to prevent us from having to scroll to see our Vacation Hours on high (see: 4K) resolutions */
     max-width:1800px;
 
+}
 
-
+#myForm{
+    font-size: 14px;
 }
 
 #navLinksContainer{
@@ -284,10 +294,35 @@ select[disabled] {
 }
 
 #hoursStatusTable {
-     text-align: right;
+    text-align: right;
+    margin-left: 15px;
+    margin-right: 15px;
 
  }
 
+#removeBtn{
+    color: red;
+}
+
+.black {
+    color: black;
+}
+
+.todayLegend {
+    background:#fcf8e3;
+}
+
+.selectedLegend {
+    background:#3a87ad;
+}
+
+.weekendLegend {
+    background:#e6e6e6;
+}
+
+.holidayLegend{
+    background: #DAF8DD;
+}
 
 #hoursStatusLabel{
     vertical-align: middle;
@@ -350,6 +385,7 @@ select[disabled] {
     height: 30px;
     width: 50px;
 
+
 }
 .my-legend a {
     color: #777;
@@ -357,20 +393,16 @@ select[disabled] {
 
 .my-legend {
     padding-left: 40%;
-
     margin: auto;
 }
 
-.my-legend .legend-labels{
-
+.my-legend span{
+    margin-bottom: 2px;
 }
 
 #recalculateBtn{
     padding-top: 8px;
 }
-
-
-
 
 
 /*---------------------------------------------*/
@@ -885,15 +917,31 @@ li.status {
 
 /* The following width settings are to ensure our calendar stays proportional and the Vacation Profile table stays on screen for 1080p and anything less than 1440 x 900
    This only applies to desktops and laptops. */
-@media only screen and (max-height: 900px){
-    #formBody {
-        max-width:1100px;
-    }
-}
-
 @media only screen and (max-height: 1080px){
     #formBody {
+        max-width:900px;
+    }
+
+    #editCalendar {
+        max-width: 600px;
+    }
+
+    #readCalendar{
+        max-width: 600px;
+    }
+
+
+
+
+}
+
+@media only screen and (max-height: 1200px){
+    #formBody {
         max-width:1500px;
+    }
+
+    #calendar{
+        max-width: 1000px;
     }
 }
 

@@ -148,7 +148,7 @@
                 </thead>
                 <tbody ng-repeat="x in myVacationRequests | filter:query">
                 <tr ng-click="openRequest(x.requestID)">
-                    <td class="col-md-4">{{x.datesThisRequest}}</td>
+                    <td align="left">{{x.datesThisRequest}}</td>
                     <td class="col-md-1">{{x.numberOfDays}}</td>
                     <td class="col-md-1">{{x.hoursThisRequest}}</td>
                     <td class="col-md-1">{{x.date}}</td>

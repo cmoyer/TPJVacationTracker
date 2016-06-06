@@ -134,9 +134,10 @@
                 <div class='my-legend'>
                     <div class='legend-scale'>
                         <ul class='legend-labels'>
-                            <li><span style='background:#fcf8e3;'></span>Today</li>
-                            <li><span style='background:#bfbfbf;'></span>Weekend</li>
-                            <li><span style='background:#bce8f1;'></span>Selected</li>
+                            <li><span class="todayLegend"></span>Today</li>
+                            <li><span class="weekendLegend"></span>Weekend</li>
+                            <li><span class="selectedLegend"></span>Selected</li>
+                            <li><span class="holidayLegend"></span>Holiday</li>
                         </ul>
                     </div>
                 </div>
@@ -146,44 +147,52 @@
         <!--The Full/half day selections-->
         <div class="container col-md-5">
             <h4>Dates Selected</h4>
+            <div class="row">
+                <form id="mainform" method="get" name="mainform">
+                    <!--<table id="myForm" class="table table-striped table-condensed"></table>-->
+                    <table id="myForm" class="table table-hover" >
+                        <tr ng-repeat="day in vacationRequest.requestedDates" ng-hide="!isNew()">
+                            <td>{{day.name}}</td>
+                            <td>
+                                <label><input type="radio" name="{{day.name}}" ng-model ="day.value"
+                                              value="Full Day" ng-change ="recalculateHours()" checked = "checked"
+                                              ng-disabled="!isNew()"> Full Day
+                                </label>
+                            </td>
+                            <td>
+                                <label><input type="radio" name="{{day.name}}" ng-model = "day.value" value="Morning"
+                                              ng-change="recalculateHours()" ng-disabled="!isNew()"> Morning</label>
+                            </td>
+                            <td>
+                                <label><input type="radio" name="{{day.name}}" ng-model = "day.value" value="Afternoon"
+                                              ng-change ="recalculateHours()" ng-disabled="!isNew()"> Afternoon</label>
+                            </td>
+                            <td>
+                                <a href="#" ng-click="clearDateFromRequest($index)">
+                                    <span class="black glyphicons glyphicons-bin"></span>
+                                </a>
+                            </td>
+                        </tr>
 
-            <form id="mainform" method="get" name="mainform">
-                <!--<table id="myForm" class="table table-striped table-condensed"></table>-->
-                <table id="myForm" class="table table-hover" >
-                    <tr ng-repeat="day in vacationRequest.requestedDates" ng-hide="!isNew()">
-                        <td>{{day.name}}</td>
-                        <td>
-                            <label><input type="radio" name="{{day.name}}" ng-model ="day.value"
-                                          value="Whole" ng-change ="recalculateHours()" checked = "checked"
-                                          ng-disabled="!isNew()"> Full Day
-                            </label>
-                        </td>
-                        <td>
-                            <label><input type="radio" name="{{day.name}}" ng-model = "day.value" value="Morning"
-                                          ng-change="recalculateHours()" ng-disabled="!isNew()"> Morning</label>
-                        </td>
-                        <td>
-                            <label><input type="radio" name="{{day.name}}" ng-model = "day.value" value="Afternoon"
-                                          ng-change ="recalculateHours()" ng-disabled="!isNew()"> Afternoon</label>
-                        </td>
-                        <td>
-                            <button type="button" class="btn btn-warning btn-circle"
-                                    ng-click="clearDateFromRequest($index)"><i
-                                    class="glyphicon glyphicon-remove"></i></button>
-                        </td>
-                    </tr>
-
-                    <tr ng-repeat="day in vacationRequest.requestedDates" ng-hide="isNew()">
-                        <td class="col-md-11">{{day.name}} - <b>{{day.value}}</b></td>
-                        <td class="col-md-1">
-                            <button type="button" class="btn btn-danger btn-circle"
-                                    ng-click="adminClearDateFromRequest($index)"
-                                    ng-show="isTaken()"><i
-                                    class="glyphicon glyphicon-remove"></i></button>
-                        </td>
-                    </tr>
-                </table>
-            </form>
+                        <tr ng-repeat="day in vacationRequest.requestedDates" ng-hide="isNew()">
+                            <td class="col-md-11">{{day.name}} - <b>{{day.value}}</b></td>
+                            <td class="col-md-1">
+                            <td>
+                                <a href="#" ng-click="clearDateFromRequest($index)"
+                                    ng-show="!isTaken()">
+                                    <span class="black glyphicons glyphicons-bin"></span>
+                                </a>
+                            </td>
+                            <td>
+                                <a href="#" id="removeBtn"
+                                   ng-click="adminClearDateFromRequest($index)"
+                                    ng-show="isTaken()"><span class="glyphicons glyphicons-remove"></span>
+                                </a>
+                            </td>
+                        </tr>
+                    </table>
+                </form>
+            </div>
 
             <div class="row">
                 <!--HoursSoFar-->

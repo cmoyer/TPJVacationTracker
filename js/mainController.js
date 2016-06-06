@@ -20,6 +20,7 @@ var vacationRequestsbyApproverURL = domainURL + '/VacationTracker.nsf/api/data/c
 var vacationDaysbyIDURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/VacationDaysbyIDREST';
 var vacationRequestsURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/VacationRequestsREST';
 var holidayURL = domainURL + '/TimeTracking.nsf/api/data/collections/name/HolidaysREST';
+var empURL = domainURL + '/Employee.nsf/api/data/collections/name/EmpRest';
 var dsMaxCount = 100; // the maximum count for the Domino data services
 var unidStr = "@unid";
 
@@ -51,6 +52,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
     $scope.getMyVacationRequests = getMyVacationRequests;
     $scope.getMyVacationRequestsToApprove = getMyVacationRequestsToApprove;
     $scope.getVacationRequestsByGroup = getVacationRequestsByGroup;
+    $scope.getVacationRequestsByGroupForMonth = getVacationRequestsByGroupForMonth;
     $scope.updateVacationProfile = updateVacationProfile;
     $scope.getRequest = getRequest;
     $scope.openRequest = openRequest;
@@ -60,6 +62,8 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
     $scope.requestHasComments = requestHasComments;
     $scope.promptForComments = promptForComments;
     $scope.cancelComments = cancelComments;
+    $scope.testSendMemo = testSendMemo;
+    $scope.testGetUsersCalendar = testGetUsersCalendar;
     var ismobi = navigator.userAgent.match(/Mobi/i);
 
     // Hide/When functions
@@ -96,8 +100,10 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
     // TODO: General changes
     // - send emails (we will have to flag each document and have another 5 minute agent...)
-    // - flag Vacation Request documents on cancel after approved (so we can remove them from the user's personal
-    //     calendar)
+    //      * We could create a document "memo" like we do in notes, but just have the agent call the doc.send(true,
+    //        true)
+    // - Domino Calendar Service to write to user's calendars.
+    //
 
     
     function initialize(){
@@ -153,7 +159,6 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         // //Update the Calendars
         $rootScope.$watch('groupVacationRequests', function(value) {
             if (value != null){
-
                 //Update all of the calendars
                 $('#calendar').fullCalendar( 'removeEventSource', $scope.eventSources3);
                 $('#calendar').fullCalendar( 'addEventSource', $scope.eventSources3);
@@ -163,10 +168,11 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
             }
         });
 
-
-
-        
-
+        $rootScope.$watch('groupName', function(value) {
+           if (value != null){
+               getVacationRequestsByGroupForMonth(value, $scope.monthStart, $scope.monthEnd);
+           }
+        });
 
 
         console.log($rootScope);
@@ -389,7 +395,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
         // console.log(data);
         $http.patch(dataPUT + $rootScope.vacationRequest.unid + "?form=Vacation%20Request", data).then(function (response){
-                // console.log(response)
+            $timeout( function(){ $scope.openRequest($rootScope.vacationRequest.requestID); }, 200);
         });
         
     }
@@ -531,7 +537,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
             var selectedDate = new Date(convertStrToDate(requestedDates[i].name));
             var selectedYear = selectedDate.getFullYear();
 
-            if (requestedDates[i].value == "Whole"){
+            if (requestedDates[i].value == "Full Day"){
                 tmpHours = 8;
             } else {
                 tmpHours = 4;
@@ -617,7 +623,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
             var selectedDate = new Date(convertStrToDate(requestedDates[i].name));
             var selectedYear = selectedDate.getFullYear();
 
-            if (requestedDates[i].value == "Whole"){
+            if (requestedDates[i].value == "Full Day"){
                 tmpHours = 8;
             } else {
                 tmpHours = 4;
@@ -665,9 +671,11 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
         if (thisYearsHours > thisYearRemaining){
             overage = true;
+            $rootScope.vacationRequest.hoursOver = thisYearRemaining - thisYearsHours;
         } else if (nextYearsHours > nextYearRemaining){
             if (ignoreNextYearOverage == false){
                 overage = true;
+                $rootScope.vacationRequest.hoursOver = nextYearRemaining - nextYearsHours;
             }
         }
 
@@ -759,6 +767,31 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         $timeout(goBack(), 2000);
     }
 
+
+    function testGetUsersCalendar(){
+        getUsersCalendar("CN=Chad Moyer/O=TPJ");
+    }
+
+    //TODO: getUsersCalendar
+    function getUsersCalendar(empNotesName){
+        var empRequestString =  empURL + "?keys=" + empNotesName + "&keysexactmatch=true&count=" + dsMaxCount;
+        $http.get(empRequestString).
+        success(function(data){
+            alert(data[0].mailfile);
+        }).
+        error(function(data,status,headers,config){
+
+        });
+    }
+
+    //TODO: addVacationToNotesCalendar
+    function addVacationToNotesCalendar(){
+
+
+        //	/{database}/api/calendar/events
+
+    }
+
     function approveVacationRequest(){
         var data = {
             'STATUS': "Approved"
@@ -766,8 +799,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
 
         $http.patch(dataPUT + $rootScope.vacationRequest.unid + "?form=Vacation%20Request", data).then(function (response) {
-            // console.log(response);
-            // gotoMyRequests();
+            //TODO: Add this event to the user's calendar
         });
 
         getHoursForEachYear($rootScope.vacationRequest.requestedDates, "Approved");
@@ -1136,9 +1168,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
             'HoursRemaining': newRemaining
         };
 
-        console.log("newSubmitted: " + newSubmitted);
-        console.log("newApproved: " + newApproved);
-        console.log("newRemaining: " + newRemaining);
+
 
         
         $http.patch(dataPUT + unidForYear + "?form=Vacation%20Profile", data).then(function (response) {
@@ -1188,6 +1218,59 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         });
     }
 
+
+    function getVacationRequestsByGroupForMonth(group, monthStart, monthEnd){
+        var tmpStartMonth = monthStart.getMonth();
+        if (tmpStartMonth.toString.length == 1){
+            tmpStartMonth = "0" + tmpStartMonth;
+        }
+        var tmpStartYear = monthStart.getFullYear();
+        var tmpEndMonth = monthEnd.getMonth();
+        if (tmpEndMonth.toString.length == 1){
+            tmpEndMonth = "0" + tmpEndMonth;
+        }
+        var tmpEndYear = monthEnd.getFullYear();
+
+        var startSearchString = tmpStartMonth + "%20AND%20" + tmpStartYear;
+        var endSearchString = tmpEndMonth + "%20AND%20" + tmpEndYear;
+
+        console.log(startSearchString);
+        console.log(endSearchString);
+
+        var requestString = vacationRequestsbyGroupURL + "?keys=" + group + "&keysexactmatch=true&count=" + dsMaxCount + "&search=FIELD%20datesThisRequest%20CONTAINS%20" + startSearchString + "%20OR%20FIELD%20datesThisRequest%20CONTAINS%20" + endSearchString;
+
+        console.log(requestString);
+
+        $http.get(requestString).
+        success(function(data) {
+            $rootScope.groupVacationRequestsForMonth = data;
+
+            //first clear out the groupSource that holds the events
+            $scope.groupSource = [];
+            $scope.selectedGroup = group;
+
+            for(var i = 0; i < data.length; i++){
+                var datesArray = data[i].datesThisRequest.split(", ");
+                for(var j=0; j<datesArray.length; j++){
+
+                    var tmpEnd = new Date(datesArray[j]);
+                    $scope.groupSource.push({
+                        title: data[i].empName,
+                        start: new Date(datesArray[j]),
+                        end: tmpEnd.setDate(tmpEnd.getDate() + 1),
+                        allDay: true,
+                        stick: true
+                    });
+                }
+            }
+
+            $scope.eventSources3[0] = $scope.groupSource;
+
+        }).
+        error(function(data, status, headers, config) {
+            // log error
+        });
+    }
 
     function getVacationRequestsByGroup(group){
         var requestString = vacationRequestsbyGroupURL + "?keys=" + group + "&keysexactmatch=true&count=" + dsMaxCount;
@@ -1322,7 +1405,6 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
                     var datesArray = tmpArray[j].name.split(", ");
 
                     var tmpEnd = new Date(datesArray[1] + " " + datesArray[2]);
-                    console.log(tmpEnd);
                     var tmpTitle = j + 1;
                     $scope.thisRequestSource.push({
                         title: "Day: " + tmpTitle.toString(),
@@ -1366,7 +1448,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         var theYear = theDate.getFullYear();
 
         var hours = 0;
-        if (selectedDateValue == "Whole"){
+        if (selectedDateValue == "Full Day"){
             hours = 8;
             $rootScope.vacationRequest.hoursThisRequest -= hours;
         } else {
@@ -1420,7 +1502,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         var selectedDateValue = $rootScope.vacationRequest.requestedDates[selectedDate].value;
 
 
-        if (selectedDateValue == "Whole"){
+        if (selectedDateValue == "Full Day"){
             $rootScope.vacationRequest.hoursThisRequest -= 8;
         } else {
             $rootScope.vacationRequest.hoursThisRequest -= 4;
@@ -1445,6 +1527,26 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         //but we also don't want to delete the day documents after we splice because it will throw an error
         if(isSaved() == true){
             saveVacationRequest();
+
+            // TODO: Finish updating this to pull from the correct status
+            // now we need to take the value of hours from Submitted Or Approved and put it in remaining
+            // for (var i=0; i < $rootScope.vacationProfile.length; i++){
+            //     if ($rootScope.vacationProfile[i].Year == theYear){
+            //         var tmpUNID = $rootScope.vacationProfile[i][unidStr];
+            //         var data = {
+            //             'HoursTaken': $rootScope.vacationProfile[i].HoursTaken - hours,
+            //             'HoursRemaining': $rootScope.vacationProfile[i].HoursRemaining + hours
+            //         };
+            //
+            //         console.log(tmpUNID);
+            //
+            //
+            //         $http.patch(dataPUT + tmpUNID + "?form=Vacation%20Profile", data).then(function (response) {
+            //             console.log(response);
+            //         });
+            //
+            //     }
+            // }
         }
 
     }
@@ -1458,7 +1560,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         for (var i=0; i<myElements.length; i++){
             if (myElements[i].checked === true){
                 // selectedDays.push(myElements[i]);
-                if (myElements[i].value == "Whole"){
+                if (myElements[i].value == "Full Day"){
                     total += 8;
                 } else {
                     total += 4;
@@ -1467,6 +1569,28 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         }
         $rootScope.vacationRequest.hoursThisRequest = total;
 
+    }
+
+    //TODO: Create Send Memo
+    function sendMemo(status, memoTo, url, comments){
+
+
+        var data = {
+            'status': status,
+            'url': url,
+            'comments': comments,
+            'hoursOver': $rootScope.vacationRequest.hoursOver,
+            'memoTo': memoTo
+        };
+
+        $http.post(dataPOST + "?form=MemoRequest", data).then(function (response) {
+            // console.log(response)
+        });
+
+    }
+
+    function testSendMemo(){
+        sendMemo("Submitted", "CN=Chad Moyer/O=TPJ", "www.google.com", "Test Comments");
     }
 
     function gotoMyRequests(){
@@ -1483,9 +1607,13 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
     function closeVacationRequest(){
         //check to see if the form is saved first
-        
+        if($rootScope.vacationRequest.status == "New"){
+            $window.location.href = "myRequests.html"
+        } else {
+            $window.location.href = $window.history.back();
+        }
 
-        $window.location.href = $window.history.back();
+
     }
 
 
@@ -1645,7 +1773,20 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
             },
             eventDrop: $scope.alertOnDrop,
             eventResize: $scope.alertOnResize,
-            eventRender: $scope.eventRender
+            eventRender: $scope.eventRender,
+            
+            viewRender: function(view, element){
+                // TODO: Only load events one month at a time
+                var start = new Date(view.start);
+                var end = new Date(view.end);
+
+                // start is the first visible day. In month-view, this value is often before the 1st day of the month,
+                // because most months do not begin on the first day-of-week.
+                // end is the last visible day.
+                $scope.monthStart = start;
+                $scope.monthEnd = end;
+                getVacationRequestsByGroupForMonth($rootScope.groupName, start, end);
+            }
         },
         readFormCalendar:{
             editable: false,
@@ -1727,7 +1868,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
                 for(var j = 0; j < formattedVacationDays.length; j++){
                     var tmpObject = {
                         "name": formattedVacationDays[j],
-                        "value": "Whole"
+                        "value": "Full Day"
                     };
 
                     var objExists = containsDate(tmpObject,$rootScope.vacationRequest.requestedDates);
