@@ -64,6 +64,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
     $scope.cancelComments = cancelComments;
     $scope.testSendMemo = testSendMemo;
     $scope.testGetUsersCalendar = testGetUsersCalendar;
+    $scope.addVacationToNotesCalendar = addVacationToNotesCalendar;
     var ismobi = navigator.userAgent.match(/Mobi/i);
 
     // Hide/When functions
@@ -72,6 +73,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
     $scope.isSubmitted = isSubmitted;
     $scope.isApproved = isApproved;
     $scope.isTaken = isTaken;
+    $scope.isRejected = isRejected;
     $scope.isApprover = isApprover;
     $scope.isCancelled = isCancelled;
 
@@ -89,6 +91,8 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
     $scope.clearDateFromRequest = clearDateFromRequest;
     $scope.adminClearDateFromRequest = adminClearDateFromRequest;
     $scope.adminTakenRequest = adminTakenRequest;
+    $scope.hideTotalHours = hideTotalHours;
+    $scope.hideStatus = hideStatus;
 
     //============================================================================
     // BEGIN ANGULAR INITIALIZATION
@@ -405,7 +409,10 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         // var myFirstDeferred = $q.defer();
 
         $rootScope.vacationRequest.date = currentDate();
-        $rootScope.vacationRequest.status = "New";
+        if ($rootScope.vacationRequest.status == null){
+            $rootScope.vacationRequest.status = "New";
+        }
+
 
 
         if($rootScope.vacationRequest.empName == null){
@@ -522,6 +529,22 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         });
 
 
+    }
+
+    function hideTotalHours(hours){
+        if (hours == "0"){
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    function hideStatus(status){
+        if (status == null){
+            return true;
+        } else {
+            return false;
+        }
     }
 
     function getHoursForEachYear(requestedDates, status){
@@ -769,15 +792,15 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
 
     function testGetUsersCalendar(){
-        getUsersCalendar("CN=Chad Moyer/O=TPJ");
+        getUsersMailfile("CN=Chad Moyer/O=TPJ");
     }
 
-    //TODO: getUsersCalendar
-    function getUsersCalendar(empNotesName){
+
+    function getUsersMailfile(empNotesName){
         var empRequestString =  empURL + "?keys=" + empNotesName + "&keysexactmatch=true&count=" + dsMaxCount;
         $http.get(empRequestString).
         success(function(data){
-            alert(data[0].mailfile);
+            $scope.mailfile = data[0].mailfile;
         }).
         error(function(data,status,headers,config){
 
@@ -787,12 +810,36 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
     //TODO: addVacationToNotesCalendar
     function addVacationToNotesCalendar(){
 
-
+        var testString = "//mail1.pjdick.com/mail/cmoyer.nsf/api/calendar/events";
+        
+        var data =  {
+            "summary":"Appointment 1",
+            "location":"Location 1",
+            "start": {
+                "date":"2016-06-06",
+                "time":"13:00:00",
+                "utc":true
+            },
+            "end": {
+                "date":"2016-06-06",
+                "time":"14:00:00",
+                "utc":true
+            }
+        };
+        
+        $http.post(testString, data).then(function (response) {
+            
+        });
+        
         //	/{database}/api/calendar/events
 
     }
 
     function approveVacationRequest(){
+        var currEmpNotesName = $rootScope.vacationRequest.empNotesName;
+        // getUsersCalendar(currEmpNotesName);
+
+
         var data = {
             'STATUS': "Approved"
         };
@@ -824,6 +871,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         // button1.callback = "";
         // $scope.modal.buttons.push(button1);
         $('#commentsModal').modal('show');
+
     }
 
     function deleteVacationDays(){
@@ -1023,6 +1071,15 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
     function isTaken(){
         var currStatus = $rootScope.vacationRequest.status;
         if (currStatus == "Taken") {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    function isRejected(){
+        var currStatus = $rootScope.vacationRequest.status;
+        if (currStatus == "Rejected") {
             return true;
         } else {
             return false;
@@ -1442,113 +1499,145 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
     // Vacation Profile.
 
     function adminClearDateFromRequest (selectedDate){
-        var selectedDateValue = $rootScope.vacationRequest.requestedDates[selectedDate].value;
-        var selectedDateName = $rootScope.vacationRequest.requestedDates[selectedDate].name;
-        var theDate = new Date(convertStrToDate(selectedDateName));
-        var theYear = theDate.getFullYear();
 
-        var hours = 0;
-        if (selectedDateValue == "Full Day"){
-            hours = 8;
-            $rootScope.vacationRequest.hoursThisRequest -= hours;
+        if (isSaved() == true & $rootScope.vacationRequest.requestedDates.length == 1){
+            $scope.modal.title = "Unable to Remove Date";
+            $scope.modal.body = "You must have at least one date on a document that has already been saved.";
+            $scope.modal.buttons = [];
+            var button1 = {};
+            button1.label = "OK";
+            button1.callback = "";
+            $scope.modal.buttons.push(button1);
+            $('#myModal').modal('show');
         } else {
-            hours = 4;
-            $rootScope.vacationRequest.hoursThisRequest -= hours;
-        }
+            var selectedDateValue = $rootScope.vacationRequest.requestedDates[selectedDate].value;
+            var selectedDateName = $rootScope.vacationRequest.requestedDates[selectedDate].name;
+            var theDate = new Date(convertStrToDate(selectedDateName));
+            var theYear = theDate.getFullYear();
 
-
-        var selectedUNID = $rootScope.vacationRequest.requestedDates[selectedDate].unid;
-        var deleteString = dataPUT + "/" + selectedUNID;
-        $http.delete(deleteString).
-        success(function(data){
-
-        }).
-        error(function(data, status, headers, config){
-
-        });
-
-
-        $rootScope.vacationRequest.requestedDates.splice(selectedDate,1);
-
-
-        //we do a second check here because we don't want to save the document until we have spliced the array.
-        //but we also don't want to delete the day documents after we splice because it will throw an error
-        saveVacationRequestWhenTaken(hours);
-
-        // now we need to take the value of hours from taken and put it in remaining
-        for (var i=0; i < $rootScope.vacationProfile.length; i++){
-            if ($rootScope.vacationProfile[i].Year == theYear){
-               var tmpUNID = $rootScope.vacationProfile[i][unidStr];
-                var data = {
-                    'HoursTaken': $rootScope.vacationProfile[i].HoursTaken - hours,
-                    'HoursRemaining': $rootScope.vacationProfile[i].HoursRemaining + hours
-                };
-
-                console.log(tmpUNID);
-
-
-                $http.patch(dataPUT + tmpUNID + "?form=Vacation%20Profile", data).then(function (response) {
-                    console.log(response);
-                });
-
+            var hours = 0;
+            if (selectedDateValue == "Full Day") {
+                hours = 8;
+                $rootScope.vacationRequest.hoursThisRequest -= hours;
+            } else {
+                hours = 4;
+                $rootScope.vacationRequest.hoursThisRequest -= hours;
             }
+
+
+            var selectedUNID = $rootScope.vacationRequest.requestedDates[selectedDate].unid;
+            var deleteString = dataPUT + "/" + selectedUNID;
+            $http.delete(deleteString).success(function (data) {
+
+            }).error(function (data, status, headers, config) {
+
+            });
+
+
+            $rootScope.vacationRequest.requestedDates.splice(selectedDate, 1);
+
+
+            //we do a second check here because we don't want to save the document until we have spliced the array.
+            //but we also don't want to delete the day documents after we splice because it will throw an error
+            saveVacationRequestWhenTaken(hours);
+
+            // now we need to take the value of hours from taken and put it in remaining
+            for (var i = 0; i < $rootScope.vacationProfile.length; i++) {
+                if ($rootScope.vacationProfile[i].Year == theYear) {
+                    var tmpUNID = $rootScope.vacationProfile[i][unidStr];
+                    var data = {
+                        'HoursTaken': $rootScope.vacationProfile[i].HoursTaken - hours,
+                        'HoursRemaining': $rootScope.vacationProfile[i].HoursRemaining + hours
+                    };
+
+                    console.log(tmpUNID);
+
+
+                    $http.patch(dataPUT + tmpUNID + "?form=Vacation%20Profile", data).then(function (response) {
+                        console.log(response);
+                    });
+
+                }
+            }
+
         }
-
-
     }
 
 
+
     function clearDateFromRequest(selectedDate){
-        var selectedDateValue = $rootScope.vacationRequest.requestedDates[selectedDate].value;
 
-
-        if (selectedDateValue == "Full Day"){
-            $rootScope.vacationRequest.hoursThisRequest -= 8;
+        if (isSaved() == true & $rootScope.vacationRequest.requestedDates.length == 1){
+            $scope.modal.title = "Unable to Remove Date";
+            $scope.modal.body = "You must have at least one date on a document that has already been saved.";
+            $scope.modal.buttons = [];
+            var button1 = {};
+            button1.label = "OK";
+            button1.callback = "";
+            $scope.modal.buttons.push(button1);
+            $('#myModal').modal('show');
         } else {
-            $rootScope.vacationRequest.hoursThisRequest -= 4;
+
+            var selectedDateValue = $rootScope.vacationRequest.requestedDates[selectedDate].value;
+            var selectedDateName = $rootScope.vacationRequest.requestedDates[selectedDate].name;
+            var theDate = new Date(convertStrToDate(selectedDateName));
+            var theYear = theDate.getFullYear();
+
+            var hours = 0;
+            if (selectedDateValue == "Full Day") {
+                hours = 8;
+                $rootScope.vacationRequest.hoursThisRequest -= hours;
+            } else {
+                hours = 4;
+                $rootScope.vacationRequest.hoursThisRequest -= hours;
+            }
+
+            if (isSaved() == true) {
+                var selectedUNID = $rootScope.vacationRequest.requestedDates[selectedDate].unid;
+                var deleteString = dataPUT + "/" + selectedUNID;
+                $http.delete(deleteString).success(function (data) {
+
+                }).error(function (data, status, headers, config) {
+
+                });
+            }
+
+            $rootScope.vacationRequest.requestedDates.splice(selectedDate, 1);
+
+
+            //we do a second check here because we don't want to save the document until we have spliced the array.
+            //but we also don't want to delete the day documents after we splice because it will throw an error
+
+
+            for (var i = 0; i < $rootScope.vacationProfile.length; i++) {
+                if ($rootScope.vacationProfile[i].Year == theYear) {
+                    var tmpUNID = $rootScope.vacationProfile[i][unidStr];
+
+                    if ($rootScope.vacationRequest.status == "Submitted") {
+                        var data = {
+                            'HoursRequested': $rootScope.vacationProfile[i].HoursRequested - hours,
+                            'HoursRemaining': $rootScope.vacationProfile[i].HoursRemaining + hours
+                        };
+                    } else {
+                        var data = {
+                            'HoursApproved': $rootScope.vacationProfile[i].HoursApproved - hours,
+                            'HoursRemaining': $rootScope.vacationProfile[i].HoursRemaining + hours
+                        };
+                    }
+
+
+                    $http.patch(dataPUT + tmpUNID + "?form=Vacation%20Profile", data).then(function (response) {
+                        console.log(response);
+                    });
+
+                }
+            }
+
+            if (isSaved() == true) {
+                saveVacationRequest();
+            }
+
         }
-
-        if(isSaved() == true){
-            var selectedUNID = $rootScope.vacationRequest.requestedDates[selectedDate].unid;
-            var deleteString = dataPUT + "/" + selectedUNID;
-            $http.delete(deleteString).
-            success(function(data){
-
-            }).
-            error(function(data, status, headers, config){
-
-            });
-        }
-
-        $rootScope.vacationRequest.requestedDates.splice(selectedDate,1);
-
-
-        //we do a second check here because we don't want to save the document until we have spliced the array.
-        //but we also don't want to delete the day documents after we splice because it will throw an error
-        if(isSaved() == true){
-            saveVacationRequest();
-
-            // TODO: Finish updating this to pull from the correct status
-            // now we need to take the value of hours from Submitted Or Approved and put it in remaining
-            // for (var i=0; i < $rootScope.vacationProfile.length; i++){
-            //     if ($rootScope.vacationProfile[i].Year == theYear){
-            //         var tmpUNID = $rootScope.vacationProfile[i][unidStr];
-            //         var data = {
-            //             'HoursTaken': $rootScope.vacationProfile[i].HoursTaken - hours,
-            //             'HoursRemaining': $rootScope.vacationProfile[i].HoursRemaining + hours
-            //         };
-            //
-            //         console.log(tmpUNID);
-            //
-            //
-            //         $http.patch(dataPUT + tmpUNID + "?form=Vacation%20Profile", data).then(function (response) {
-            //             console.log(response);
-            //         });
-            //
-            //     }
-            // }
-        }
-
     }
 
     function recalculateHours(){
@@ -1776,7 +1865,6 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
             eventRender: $scope.eventRender,
             
             viewRender: function(view, element){
-                // TODO: Only load events one month at a time
                 var start = new Date(view.start);
                 var end = new Date(view.end);
 

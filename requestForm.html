@@ -179,7 +179,7 @@
                             <td class="col-md-1">
                             <td>
                                 <a href="#" ng-click="clearDateFromRequest($index)"
-                                    ng-show="!isTaken()">
+                                    ng-show="!isTaken() && !isRejected() &&!isCancelled()">
                                     <span class="black glyphicons glyphicons-bin"></span>
                                 </a>
                             </td>
@@ -198,23 +198,23 @@
                 <!--HoursSoFar-->
                 <div class = pull-right>
                     <table id="hoursStatusTable">
-                        <tr>
+                        <tr ng-show="!hideTotalHours(vacationRequest.hoursThisRequest)">
                             <td >
                                 <h3>Total Hours This Request: </h3>
                             </td>
 
                             <td>
-                                <h2 id="totalHours">{{vacationRequest.hoursThisRequest}}</h2>
+                                <h2 id="totalHours" >{{vacationRequest.hoursThisRequest}}</h2>
                             </td>
                         </tr>
 
-                        <tr>
+                        <tr ng-show="!hideStatus(vacationRequest.status)">
                             <td>
                                 <h3>Status: </h3>
                             </td>
 
                             <td >
-                                <h2 id="status">{{vacationRequest.status}}</h2>
+                                <h2 id="status" >{{vacationRequest.status}}</h2>
                             </td>
                         </tr>
                     </table>
