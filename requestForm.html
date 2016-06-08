@@ -69,7 +69,8 @@
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
                        aria-expanded="false">My Requests <span class="caret"></span></a>
                     <ul class="dropdown-menu">
-                        <li><a href="MyRequests.html">My Requests by Date</a></li>
+                        <li><a href="MyRequests.html">My Requests</a></li>
+                        <li><a href="MyRequestsByDate.html">My Requests by Date</a></li>
                         <li><a href="myCalendar.html">My Calendar</a></li>
                         <li><a href="MyGroupCalendar.html">My Group's Calendar</a></li>
                     </ul>
@@ -261,7 +262,20 @@
                     <th>Remaining</th>
                 </tr>
                 </thead>
-                <tbody ng-repeat="x in vacationProfile">
+                <tbody ng-repeat="x in userVacationProfile" ng-show="isSaved()">
+                <tr>
+                    <td scope="row">{{x.Year}}</td>
+                    <td>{{x.HoursThisYear}}</td>
+                    <td>{{x.HoursRolledOver}}</td>
+                    <td>{{x.FloatingHolidayHours}}</td>
+                    <td>{{x.TotalHours}}</td>
+                    <td>{{x.HoursRequested}}</td>
+                    <td>{{x.HoursApproved}}</td>
+                    <td>{{x.HoursTaken}}</td>
+                    <td>{{x.HoursRemaining}}</td>
+                </tr>
+                </tbody>
+                <tbody ng-repeat="x in vacationProfile" ng-show="!isSaved()">
                 <tr>
                     <td scope="row">{{x.Year}}</td>
                     <td>{{x.HoursThisYear}}</td>
@@ -366,6 +380,26 @@
     </div>
 </div>
 
+<!-- Vacation Profile Modal -->
+<div class="modal fade" id="vacationProfileModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" ng-show="false"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel3">{{modal.title}}</h4>
+            </div>
+            <div class="modal-body">
+                {{modal.body}}
+            </div>
+            <div class="modal-footer">
+                <span ng-repeat="button in modal.buttons">
+                    <button type="button" class="btn btn-default" data-dismiss="modal"
+                            ng-click="closeVacationRequest()">{{button.label}}</button>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Bootstrap core JavaScript
  ================================================== -->

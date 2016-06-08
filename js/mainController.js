@@ -46,6 +46,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
     $scope.isMobileDevice = false;
     $scope.processing = false;
     $scope.isProcessing = isProcessing;
+    $scope.promptWithProfileDialog = false;
 
  
     $scope.getVacationProfile = getVacationProfile;
@@ -392,7 +393,8 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
             'requestComments': $rootScope.vacationRequest.requestComments,
             'requestID': $rootScope.vacationRequest.requestID,
             'numberOfDays': numberOfDays,
-            'datesThisRequest': datesStr
+            'datesThisRequest': datesStr,
+            'arrDatesThisRequest':datesThisRequest
             // 'requestedDates': $rootScope.vacationRequest.requestedDates
         };
 
@@ -482,7 +484,8 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
                 'requestComments': $rootScope.vacationRequest.requestComments,
                 'requestID': $rootScope.vacationRequest.requestID,
                 'numberOfDays': numberOfDays,
-                'datesThisRequest': datesStr
+                'datesThisRequest': datesStr,
+                'arrDatesThisRequest':datesThisRequest
                 // 'requestedDates': $rootScope.vacationRequest.requestedDates
             };
 
@@ -515,18 +518,20 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
     }
 
-    function createVacationProfile(year, empNotesName){
+    function createVacationProfile(year, empNotesName, nextYearsHours){
         //create a profile request document that we will have an agent pick up, pass to our "CreateNextYear's
         // Profile agent
 
         var data = {
             'empNotesName': empNotesName,
-            'year': year
+            'year': year,
+            'hours': nextYearsHours
         };
 
         $http.post(dataPOST + "?form=Profile%20Request", data).then(function (response) {
             // console.log(response)
         });
+
 
 
     }
@@ -577,12 +582,37 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
             case "Submitted":
                 if (thisYearsHours != 0){
                     updateVacationProfile(thisYear, thisYearsHours, 0, 0);
-                    $timeout(gotoMyRequests(), 2000);
+
+                    if ($scope.promptWithProfileDialog == true){
+                        $scope.modal.title = "Vacation Profile Request Submitted";
+                        $scope.modal.body = "Please allow 5 - 10 minutes for the system to update your " + nextYear + " vacation" +
+                            " profile.";
+                        $scope.modal.buttons = [];
+                        var button1 = {};
+                        button1.label = "OK";
+                        button1.callback = "";
+                        $scope.modal.buttons.push(button1);
+                        $('#vacationProfileModal').modal('show');
+                    } else {
+                        $timeout(gotoMyRequests(), 2000);
+                    }
                 }
 
                 if (nextYearsHours != 0){
                     updateVacationProfile(nextYear, nextYearsHours, 0, 0);
-                    $timeout(gotoMyRequests(), 2000);
+                    if ($scope.promptWithProfileDialog == true){
+                        $scope.modal.title = "Vacation Profile Request Submitted";
+                        $scope.modal.body = "Please allow 5 - 10 minutes for the system to update your " + nextYear + " vacation" +
+                            " profile.";
+                        $scope.modal.buttons = [];
+                        var button1 = {};
+                        button1.label = "OK";
+                        button1.callback = "";
+                        $scope.modal.buttons.push(button1);
+                        $('#vacationProfileModal').modal('show');
+                    } else {
+                        $timeout(gotoMyRequests(), 2000);
+                    }
                 }
                 break;
 
@@ -645,7 +675,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         for (var i=0; i < requestedDates.length; i++){
             var selectedDate = new Date(convertStrToDate(requestedDates[i].name));
             var selectedYear = selectedDate.getFullYear();
-
+            // var nextYear = selectedYear + 1;
             if (requestedDates[i].value == "Full Day"){
                 tmpHours = 8;
             } else {
@@ -667,12 +697,17 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
                     needToCreateNextYear = false;
                 }
             }
+        } else {
+            needToCreateNextYear = false;
         }
 
         
         if (needToCreateNextYear == true){
-            createVacationProfile(nextYear, $rootScope.empNotesName);
+
+            createVacationProfile(nextYear, $rootScope.empNotesName, nextYearsHours);
             ignoreNextYearOverage = true;
+            $scope.promptWithProfileDialog = true;
+
         }
 
 
@@ -702,32 +737,64 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
             }
         }
 
-
         return overage;
 
+    }
 
+    function checkForValidDates(requestedDates){
+        var currentdate = new Date();
+        var thisYear = currentdate.getFullYear();
+        var nextYear = thisYear + 1;
+
+        // check to see which years are included in this request
+        for (var i=0; i < requestedDates.length; i++){
+            var selectedDate = new Date(convertStrToDate(requestedDates[i].name));
+            var selectedYear = selectedDate.getFullYear();
+            // var nextYear = selectedYear + 1;
+
+            if (selectedYear != thisYear & selectedYear != nextYear) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     function isReadyToSubmit(){
         var readyToSubmit = $rootScope.vacationRequest.unid;
         if (readyToSubmit != null) {
-            var isOverage = checkForOverage($rootScope.vacationRequest.requestedDates);
-            if (isOverage == true) {
-                $scope.modal.title = "Hours Overage";
-                $scope.modal.body = "This request exceeds your system calculated allotment.\n\nYour approver has" +
-                    " been notified of this overage.";
+            var areDatesValid = checkForValidDates($rootScope.vacationRequest.requestedDates);
+            if (areDatesValid == false){
+
+                var currentdate = new Date();
+                var thisYear = currentdate.getFullYear();
+                var nextYear = thisYear + 1;
+
+                $scope.modal.title = "Invalid Dates";
+                $scope.modal.body = "You can only request dates from " + thisYear + " or " + nextYear + ".";
                 $scope.modal.buttons = [];
                 var button1 = {};
                 button1.label = "OK";
                 button1.callback = "";
                 $scope.modal.buttons.push(button1);
-                $('#overageModal').modal('show');
+                $('#myModal').modal('show');
             } else {
-                submitVacationRequest();
+                var isOverage = checkForOverage($rootScope.vacationRequest.requestedDates);
+                if (isOverage == true) {
+                    $scope.modal.title = "Hours Overage";
+                    $scope.modal.body = "This request exceeds your system calculated allotment.\n\nYour approver has" +
+                        " been notified of this overage.";
+                    $scope.modal.buttons = [];
+                    var button1 = {};
+                    button1.label = "OK";
+                    button1.callback = "";
+                    $scope.modal.buttons.push(button1);
+                    $('#overageModal').modal('show');
+                } else {
+                    submitVacationRequest();
+                }
             }
 
-        } else {
-            
         }
     }
 
@@ -1193,6 +1260,20 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         });
     }
 
+    function getVacationProfileByUser(u){
+        var requestString = vacationProfileURL + "?keys=" + u + "&keysexactmatch=true";
+        $http.get(requestString).
+        success(function(data) {
+            $rootScope.userVacationProfile = data;
+
+
+
+        }).
+        error(function(data, status, headers, config) {
+            // log error
+        });
+    }
+
 
 
     function updateVacationProfile(year, hoursSubmitted, hoursApproved, hoursCancelledOrRejected){
@@ -1412,6 +1493,8 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
             $rootScope.vacationRequest.groupName = data[0].groupName;
             $rootScope.vacationRequest.requestID = data[0].requestID;
             $rootScope.vacationRequest.unid = data[0][unidStr];
+
+            getVacationProfileByUser(data[0].EMPNOTESNAME);
 
             var dateArray;
             dateArray = getDates($rootScope.vacationRequest.startDate, $rootScope.vacationRequest.endDate);
