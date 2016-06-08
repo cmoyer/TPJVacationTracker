@@ -2,7 +2,7 @@
  * Created by chad on 4/25/16.
  */
 
-var main = angular.module('main', ['ngMessages','ui.calendar', 'ngRoute','angularUUID2'])
+var main = angular.module('main', ['ngMessages','ui.calendar', 'ngRoute','angular.filter','angularUUID2'])
     .controller('mainCtrl',['$rootScope','$scope', '$location', '$http', '$compile', '$q','$timeout','$window', 'uuid2', MainCtrl]);
 var domainURL = '//www.pjdick.com';
 var dataURL = domainURL + '/VacationTracker.nsf';
@@ -118,6 +118,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         $rootScope.vacationRequest.hoursThisRequest = 0;
         $rootScope.vacationProfile = {};
         $rootScope.myVacationRequests = {};
+        $rootScope.myVacationRequestsByYear = [{}];
         $rootScope.myVacationRequestsToApprove = {};
         $rootScope.groupVacationRequests = {};
         $rootScope.holidayList = {};
@@ -337,6 +338,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
                 'empName': $rootScope.vacationRequest.empName,
                 'name': $rootScope.vacationRequest.requestedDates[i].name,
                 'value': $rootScope.vacationRequest.requestedDates[i].value,
+                'empNotesName': $rootScope.vacationRequest.empNotesName,
                 'lookupKey': $rootScope.vacationRequest.requestID
             };
 
@@ -1321,10 +1323,24 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         $http.get(requestString).
         success(function(data) {
             $rootScope.myVacationRequests = data;
+            $rootScope.myVacationRequestsByYear.shift();
 
             for(var i = 0; i < data.length; i++){
                 var datesArray = data[i].datesThisRequest.split(", ");
+
+
                 for(var j=0; j<datesArray.length; j++){
+
+                    var tmpDate = new Date(datesArray[j]);
+                    var tmpYear = tmpDate.getFullYear();
+
+                    //TODO: Build myVacationRequestsByYear
+                    $rootScope.myVacationRequestsByYear.push({
+                        year: tmpYear,
+                        value: data[i],
+                        date: tmpDate
+                    });
+
 
                     var tmpEnd = new Date(datesArray[j]);
                     $scope.mySource.push({
@@ -1496,28 +1512,29 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
             getVacationProfileByUser(data[0].EMPNOTESNAME);
 
-            var dateArray;
-            dateArray = getDates($rootScope.vacationRequest.startDate, $rootScope.vacationRequest.endDate);
-            //get the weekdays from the dateArray and store them in this array.
-            var vacationDays = [];
-            var arrayLength = dateArray.length;
-            for (var i = 0; i < arrayLength; i++){
-                var selectedDate = dateArray[i];
-                var day = selectedDate.getDay();
-                if (day != 0 && day != 6) {
-                    vacationDays.push(selectedDate);
-                }
-            }
-
-
-            // Now that we have the dates, dynamically create the form.
-
-            //lets format the dates..
-            var formattedVacationDays = [];
-            for (var x = 0; x < vacationDays.length; x++){
-                var formattedDate = dateFormat(vacationDays[x], "fullDate");
-                formattedVacationDays.push(formattedDate);
-            }
+            //CM COMMENTED OUT 6/7/16
+            // var dateArray;
+            // dateArray = getDates($rootScope.vacationRequest.startDate, $rootScope.vacationRequest.endDate);
+            // //get the weekdays from the dateArray and store them in this array.
+            // var vacationDays = [];
+            // var arrayLength = dateArray.length;
+            // for (var i = 0; i < arrayLength; i++){
+            //     var selectedDate = dateArray[i];
+            //     var day = selectedDate.getDay();
+            //     if (day != 0 && day != 6) {
+            //         vacationDays.push(selectedDate);
+            //     }
+            // }
+            //
+            //
+            // // Now that we have the dates, dynamically create the form.
+            //
+            // //lets format the dates..
+            // var formattedVacationDays = [];
+            // for (var x = 0; x < vacationDays.length; x++){
+            //     var formattedDate = dateFormat(vacationDays[x], "fullDate");
+            //     formattedVacationDays.push(formattedDate);
+            // }
 
 
             var vacationDaysRequestString = vacationDaysbyIDURL + "?keys=" + $rootScope.vacationRequest.requestID + "&keysexactmatch=true&count=" + dsMaxCount;
