@@ -2,7 +2,7 @@
  * Created by chad on 4/25/16.
  */
 
-var main = angular.module('main', ['ngMessages','ui.calendar', 'ngRoute','angular.filter','angularUUID2'])
+var main = angular.module('main', ['ngMessages','ui.calendar', 'ngRoute','ng.group','angularUUID2'])
     .controller('mainCtrl',['$rootScope','$scope', '$location', '$http', '$compile', '$q','$timeout','$window', 'uuid2', MainCtrl]);
 var domainURL = '//www.pjdick.com';
 var dataURL = domainURL + '/VacationTracker.nsf';
@@ -879,26 +879,40 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
     //TODO: addVacationToNotesCalendar
     function addVacationToNotesCalendar(){
 
-        var testString = "//mail1.pjdick.com/mail/cmoyer.nsf/api/calendar/events";
-        
-        var data =  {
-            "summary":"Appointment 1",
-            "location":"Location 1",
-            "start": {
-                "date":"2016-06-06",
-                "time":"13:00:00",
-                "utc":true
-            },
-            "end": {
-                "date":"2016-06-06",
-                "time":"14:00:00",
-                "utc":true
-            }
-        };
-        
-        $http.post(testString, data).then(function (response) {
-            
+
+        var testString =  "//mail1.pjdick.com/mail/cmoyer.nsf/api/calendar/events";
+
+        $http.get(testString).
+        success(function(data){
+            console.log(data);
+        }).
+        error(function(data,status,headers,config){
+
         });
+
+
+
+
+        // var data =  {
+        //     "summary":"Appointment 1",
+        //     "location":"Location 1",
+        //     "start": {
+        //         "date":"2016-06-06",
+        //         "time":"13:00:00",
+        //         "utc":true
+        //     },
+        //     "end": {
+        //         "date":"2016-06-06",
+        //         "time":"14:00:00",
+        //         "utc":true
+        //     }
+        // };
+        //
+        // console.log(data);
+        //
+        // $http.post(testString, data).then(function (response) {
+        //
+        // });
         
         //	/{database}/api/calendar/events
 
@@ -1326,7 +1340,22 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
             $rootScope.myVacationRequestsByYear.shift();
 
             for(var i = 0; i < data.length; i++){
-                var datesArray = data[i].datesThisRequest.split(", ");
+                var tmpDatesArray = data[i].datesThisRequest.split(", ");
+
+
+                //This ensures the individual dates are in descending order
+                var datesArray = tmpDatesArray.sort(function(a,b) {
+                    var date1 = new Date(a);
+                    var date2 = new Date(b);
+
+                    if (date1 < date2){
+                        return 1;
+                    }
+                    if (date1 > date2){
+                        return -1;
+                    }
+                });
+
 
 
                 for(var j=0; j<datesArray.length; j++){
@@ -1338,7 +1367,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
                     $rootScope.myVacationRequestsByYear.push({
                         year: tmpYear,
                         value: data[i],
-                        date: tmpDate
+                        date: tmpDate.format("mm/dd/yyyy")
                     });
 
 
@@ -1351,6 +1380,8 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
                         stick: true
                     });
                 }
+
+                
             }
         }).
         error(function(data, status, headers, config) {
@@ -1388,12 +1419,9 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         var startSearchString = tmpStartMonth + "%20AND%20" + tmpStartYear;
         var endSearchString = tmpEndMonth + "%20AND%20" + tmpEndYear;
 
-        console.log(startSearchString);
-        console.log(endSearchString);
 
         var requestString = vacationRequestsbyGroupURL + "?keys=" + group + "&keysexactmatch=true&count=" + dsMaxCount + "&search=FIELD%20datesThisRequest%20CONTAINS%20" + startSearchString + "%20OR%20FIELD%20datesThisRequest%20CONTAINS%20" + endSearchString;
 
-        console.log(requestString);
 
         $http.get(requestString).
         success(function(data) {

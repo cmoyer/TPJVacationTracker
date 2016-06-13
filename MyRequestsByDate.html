@@ -36,7 +36,7 @@
     <script src="js/calendar.js"></script>
 
     <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-messages.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-filter/0.5.8/angular-filter.min.js"></script>
+
 
     <!-- GUID generator -->
     <script src="js/angular-uuid2.min.js"></script>
@@ -45,6 +45,7 @@
     <script src="js/calendarActions.js"></script>
     <script src="js/mainController.js"></script>
     <script src="js/support.js"></script>
+    <script src="js/ngGroup.js"></script>
 
 
 
@@ -137,39 +138,40 @@
     <!--Table-->
     <div class="row">
         <div class="col-md-12">
-
-            <section ng-repeat="(key, value) in myVacationRequestsByYear | groupBy: 'year'">
-                Year: {{key}}
-                <li ng-repeat="x in value">
-                    Date: {{x.date}}
-                </li>
+            <section ng-repeat="x in myVacationRequestsByYear">
+                <table class="table table-hover " id="dataTable">
+                    <caption>{{x.year}}</caption>
+                    <thead class="thead-default">
+                    <th>Dates</th>
+                    <th># of Days</th>
+                    <th>Hours</th>
+                    <th>Requested</th>
+                    <th>Status</th>
+                    <th>Comments</th>
+                    </thead>
+                    <tbody>
+                        <td>{{x.value.datesThisRequest}}</td>
+                    </tbody>
+                </table>
             </section>
-
-
-            <!--<table class="table table-hover " id="dataTable">-->
-                <!--<thead class="thead-default">-->
-                <!--<tr>-->
-                    <!--<th>Dates</th>-->
-                    <!--<th># of Days</th>-->
-                    <!--<th>Hours</th>-->
-                    <!--<th>Requested</th>-->
-                    <!--<th>Status</th>-->
-                    <!--<th>Comments</th>-->
-                <!--</tr>-->
-                <!--</thead>-->
-                <!--<tbody ng-repeat="x in myVacationRequests | filter:query" ng-click="openRequest(x.requestID)">-->
-                    <!--<tr ng-repeat="i in x.datesThisRequest.split(',')">-->
-                            <!--<td>{{i}}</td>-->
-                            <!--<td class="col-md-1">{{x.numberOfDays}}</td>-->
-                            <!--<td class="col-md-1">{{x.hoursThisRequest}}</td>-->
-                            <!--<td class="col-md-1">{{x.date}}</td>-->
-                            <!--<td class="col-md-1">{{x.status}}</td>-->
-                            <!--<td class="col-md-3">{{x.minRequestComments}}</td>-->
-                    <!--</tr>-->
-                <!--</tbody>-->
-            <!--</table>-->
         </div>
     </div>
+<!--
+    <section
+            ng-repeat="(key, value) in myVacationRequestsByYear | groupBy: 'year'  ">
+        <table class="table table-hover " id="dataTable">
+            <thead class="thead-default">
+            <td>{{key}}</td>
+            </thead>
+            <tbody>
+            <tr ng-repeat="x in value">
+                <td>{{x.date}}</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+    -->
 </div>
 
 
