@@ -18,6 +18,7 @@ var vacationRequestsbyIDURL = domainURL + '/VacationTracker.nsf/api/data/collect
 var vacationRequestsbyGroupURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/VacationRequestsbyGroupREST';
 var vacationRequestsbyApproverURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/VacationRequestsbyApproverREST';
 var vacationDaysbyIDURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/VacationDaysbyIDREST';
+var vacationDaysbyEMPURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/VacationDaysbyEMPREST';
 var vacationRequestsURL = domainURL + '/VacationTracker.nsf/api/data/collections/name/VacationRequestsREST';
 var holidayURL = domainURL + '/TimeTracking.nsf/api/data/collections/name/HolidaysREST';
 var empURL = domainURL + '/Employee.nsf/api/data/collections/name/EmpRest';
@@ -247,6 +248,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
             }
             getVacationProfile();
             getMyVacationRequests();
+            getMyVacationRequestsByYear();
             getMyVacationRequestsToApprove();
             // alert($rootScope.groupName);
             // getVacationRequestsByGroup($rootScope.groupName);
@@ -325,7 +327,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
     }
 
-    function createVacationDayDocuments(){
+    function createVacationDayDocuments(empNotesName, status){
 
         var defer = $q.defer();
 
@@ -338,7 +340,8 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
                 'empName': $rootScope.vacationRequest.empName,
                 'name': $rootScope.vacationRequest.requestedDates[i].name,
                 'value': $rootScope.vacationRequest.requestedDates[i].value,
-                'empNotesName': $rootScope.vacationRequest.empNotesName,
+                'EMPNOTESNAME': empNotesName,
+                'STATUS': status,
                 'lookupKey': $rootScope.vacationRequest.requestID
             };
 
@@ -507,7 +510,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
                 });
             }
 
-            createVacationDayDocuments()
+            createVacationDayDocuments($rootScope.vacationRequest.empNotesName, "New")
                 .then(function(){
                     // THIS NEEDS TO BE HERE TO GET THE UNID OF THE LOTUS DOCUMENT BECAUSE WE ARE NO LONGER CLOSING THE FORM.
                     $timeout( function(){ $scope.openRequest($rootScope.vacationRequest.requestID); }, 200);
@@ -621,20 +624,24 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
             case "Approved":
                 if (thisYearsHours != 0){
                     updateVacationProfile(thisYear, -thisYearsHours, thisYearsHours, thisYearsHours);
+                    $timeout(gotoMyApprovals(), 2000);
                 }
 
                 if (nextYearsHours != 0){
                     updateVacationProfile(nextYear, -thisYearsHours, nextYearsHours, nextYearsHours);
+                    $timeout(gotoMyApprovals(), 2000);
                 }
                 break;
 
             case "Rejected":
                 if (thisYearsHours != 0){
                     updateVacationProfile(thisYear, -thisYearsHours, 0, thisYearsHours);
+                    $timeout(gotoMyApprovals(), 2000);
                 }
 
                 if (nextYearsHours != 0){
                     updateVacationProfile(nextYear, -nextYearsHours, 0, nextYearsHours);
+                    $timeout(gotoMyApprovals(), 2000);
                 }
                 break;
 
@@ -642,8 +649,10 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
                 if (thisYearsHours != 0){
                     if($rootScope.vacationRequest.status == "Submitted"){
                         updateVacationProfile(thisYear, -thisYearsHours, 0, thisYearsHours);
+                        $timeout(gotoMyRequests(), 2000);
                     } else {
                         updateVacationProfile(thisYear, 0, -thisYearsHours, thisYearsHours);
+                        $timeout(gotoMyRequests(), 2000);
                     }
 
                 }
@@ -651,8 +660,10 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
                 if (nextYearsHours != 0){
                     if($rootScope.vacationRequest.status == "Submitted"){
                         updateVacationProfile(nextYear, -nextYearsHours, 0, nextYearsHours);
+                        $timeout(gotoMyRequests(), 2000);
                     } else {
                         updateVacationProfile(nextYear, 0, -nextYearsHours, nextYearsHours);
+                        $timeout(gotoMyRequests(), 2000);
                     }
 
                 }
@@ -813,7 +824,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         });
 
         // createVacationDayDocuments();
-        createVacationDayDocuments()
+        createVacationDayDocuments($rootScope.empNotesName, "Submitted")
             .then(function(){
                 // THIS NEEDS TO BE HERE TO GET THE UNID OF THE LOTUS DOCUMENT BECAUSE WE ARE NO LONGER CLOSING THE FORM.
                 // alert("here");
@@ -932,8 +943,23 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
             //TODO: Add this event to the user's calendar
         });
 
-        getHoursForEachYear($rootScope.vacationRequest.requestedDates, "Approved");
-        $timeout(gotoMyApprovals(), 2000);
+        createVacationDayDocuments(currEmpNotesName, "Approved")
+            .then(function(){
+                // THIS NEEDS TO BE HERE TO GET THE UNID OF THE LOTUS DOCUMENT BECAUSE WE ARE NO LONGER CLOSING THE FORM.
+                // alert("here");
+                // $timeout(openRequest($rootScope.vacationRequest.requestID), 2000);
+                $timeout( function(){
+                    getHoursForEachYear($rootScope.vacationRequest.requestedDates, "Approved");
+
+                }, 200);
+            })
+            .error(function(){
+                // alert("in error");
+                // $timeout(openRequest($rootScope.vacationRequest.requestID), 2000);
+                $timeout( function(){
+                    getHoursForEachYear($rootScope.vacationRequest.requestedDates, "Approved");
+                }, 200);
+            });
 
     }
 
@@ -1094,13 +1120,47 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
                     break;
             }
+
+            
             $http.patch(dataPUT + $rootScope.vacationRequest.unid + "?form=Vacation%20Request", data).then(function (response) {
                 if (type == "cancel"){
-                    getHoursForEachYear($rootScope.vacationRequest.requestedDates, "Cancelled");
-                    $timeout(gotoMyRequests(), 2000);
+
+                    createVacationDayDocuments($rootScope.vacationRequest.empNotesName, "Cancelled")
+                        .then(function(){
+                            // THIS NEEDS TO BE HERE TO GET THE UNID OF THE LOTUS DOCUMENT BECAUSE WE ARE NO LONGER CLOSING THE FORM.
+                            // alert("here");
+                            // $timeout(openRequest($rootScope.vacationRequest.requestID), 2000);
+                            $timeout( function(){
+                                getHoursForEachYear($rootScope.vacationRequest.requestedDates, "Cancelled");
+
+                            }, 200);
+                        })
+                        .error(function(){
+                            // alert("in error");
+                            // $timeout(openRequest($rootScope.vacationRequest.requestID), 2000);
+                            $timeout( function(){
+                                getHoursForEachYear($rootScope.vacationRequest.requestedDates, "Cancelled");
+                            }, 200);
+                        });
                 } else {
-                    getHoursForEachYear($rootScope.vacationRequest.requestedDates, "Rejected");
-                    $timeout(gotoMyApprovals(), 2000);
+
+                    createVacationDayDocuments($rootScope.vacationRequest.empNotesName, "Rejected")
+                        .then(function(){
+                            // THIS NEEDS TO BE HERE TO GET THE UNID OF THE LOTUS DOCUMENT BECAUSE WE ARE NO LONGER CLOSING THE FORM.
+                            // alert("here");
+                            // $timeout(openRequest($rootScope.vacationRequest.requestID), 2000);
+                            $timeout( function(){
+                                getHoursForEachYear($rootScope.vacationRequest.requestedDates, "Rejected");
+
+                            }, 200);
+                        })
+                        .error(function(){
+                            // alert("in error");
+                            // $timeout(openRequest($rootScope.vacationRequest.requestID), 2000);
+                            $timeout( function(){
+                                getHoursForEachYear($rootScope.vacationRequest.requestedDates, "Rejected");
+                            }, 200);
+                        });
                 }
 
             });
@@ -1330,6 +1390,98 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         });
     }
 
+    //TODO:WORKING HERE
+    $scope.totalForYear = function() {
+        var total = 0;
+        angular.forEach($rootScope.myVacationRequestsByYear, function(item) {
+            total += item.hours;
+        });
+
+        return total;
+    };
+
+    // This will be used for our accordian view.
+    function getMyVacationRequestsByYear(){
+        var u = $rootScope.empNotesName;
+        var requestString = vacationDaysbyEMPURL + "?keys=" + u + "&keysexactmatch=true&count=" + dsMaxCount;
+        $http.get(requestString).
+        success(function(data) {
+
+            $rootScope.myVacationRequestsByYear.shift();
+            for(var i = 0; i < data.length; i++){
+                var tmpHours;
+                var tmpYear;
+                var tmpDate;
+
+                tmpDate = new Date(data[i].name);
+                tmpYear = tmpDate.getFullYear();
+
+                if (data[i].value == "Full Day"){
+                    tmpHours = 8;
+                } else {
+                    tmpHours = 4;
+                }
+
+
+
+                $rootScope.myVacationRequestsByYear.push({
+                    year: tmpYear,
+                    hours: tmpHours,
+                    status: data[i].STATUS,
+                    requestID: data[i].lookupKey,
+                    date: tmpDate.format("mm/dd/yyyy")
+                });
+
+                // var tmpDatesArray = data[i].datesThisRequest.split(", ");
+                //
+                //
+                // //This ensures the individual dates are in descending order
+                // var datesArray = tmpDatesArray.sort(function(a,b) {
+                //     var date1 = new Date(a);
+                //     var date2 = new Date(b);
+                //
+                //     if (date1 < date2){
+                //         return 1;
+                //     }
+                //     if (date1 > date2){
+                //         return -1;
+                //     }
+                // });
+                //
+                //
+                //
+                // for(var j=0; j<datesArray.length; j++){
+                //
+                //     var tmpDate = new Date(datesArray[j]);
+                //     var tmpYear = tmpDate.getFullYear();
+                //
+                //     //TODO: Build myVacationRequestsByYear
+                //     $rootScope.myVacationRequestsByYear.push({
+                //         year: tmpYear,
+                //         value: data[i],
+                //         hours: data[i],
+                //         date: tmpDate.format("mm/dd/yyyy")
+                //     });
+                //
+                //
+                //     var tmpEnd = new Date(datesArray[j]);
+                //     $scope.mySource.push({
+                //         title: data[i].empName,
+                //         start: new Date(datesArray[j]),
+                //         end: tmpEnd.setDate(tmpEnd.getDate() + 1),
+                //         allDay: true,
+                //         stick: true
+                //     });
+                // }
+
+
+            }
+
+        }).
+        error(function(data, status, headers, config) {
+            // log error
+        });
+    }
 
     function getMyVacationRequests(){
         var u = $rootScope.empNotesName;
@@ -1337,7 +1489,6 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         $http.get(requestString).
         success(function(data) {
             $rootScope.myVacationRequests = data;
-            $rootScope.myVacationRequestsByYear.shift();
 
             for(var i = 0; i < data.length; i++){
                 var tmpDatesArray = data[i].datesThisRequest.split(", ");
@@ -1356,21 +1507,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
                     }
                 });
 
-
-
                 for(var j=0; j<datesArray.length; j++){
-
-                    var tmpDate = new Date(datesArray[j]);
-                    var tmpYear = tmpDate.getFullYear();
-
-                    //TODO: Build myVacationRequestsByYear
-                    $rootScope.myVacationRequestsByYear.push({
-                        year: tmpYear,
-                        value: data[i],
-                        date: tmpDate.format("mm/dd/yyyy")
-                    });
-
-
                     var tmpEnd = new Date(datesArray[j]);
                     $scope.mySource.push({
                         title: data[i].empName,
@@ -1788,7 +1925,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
     }
 
-    //TODO: Create Send Memo
+
     function sendMemo(status, memoTo, url, comments){
 
 

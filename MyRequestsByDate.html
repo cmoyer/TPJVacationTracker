@@ -135,12 +135,60 @@
 
 
 
+
+
     <!--Table-->
+    <br>
     <div class="row">
         <div class="col-md-12">
-            <section ng-repeat="x in myVacationRequestsByYear">
+            <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+                <div class="panel panel-default" ng-repeat="requests in myVacationRequestsByYear | groupBy:'year':'datesByYear'">
+                    <div class="panel-heading" role="tab" id="headingOne">
+                        <h4 class="panel-title">
+                            <a role="button" data-toggle="collapse" data-parent="#accordion" href="#{{requests.year}}"
+                               aria-expanded="false"
+                               aria-controls="{{requests.year}}">
+                                {{requests.year}}
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="{{requests.year}}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+                        <div class="panel-body">
+                            <table class="table table-hover " id="dataTable" ng-init="hours.total = 0">
+                                <thead class="thead-default">
+                                <th>Dates</th>
+                                <th>Hours</th>
+                                <th>Status</th>
+                                <th></th>
+                                </thead>
+                                <tbody >
+                                <tr ng-repeat="request in requests.items | orderBy: '-date'"
+                                    ng-click="openRequest(request.requestID)">
+                                    <td align="left" class="col-md-1">{{request.date}}</td>
+                                    <td class="col-md-2" ng-init="hours.total = hours.total + request.hours">{{request
+                                        .hours}}</td>
+                                    <td class="col-md-2">{{request.status}}</td>
+                                    <td class="col-md-7"></td>
+                                </tr>
+                                <tr>
+                                    <td>Total:</td>
+                                    <td>{{hours.total}}</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<!--
+
+    <div class="row">
+        <div class="col-md-12">
+            <div ng-repeat="requests in myVacationRequestsByYear | groupBy:'year':'datesByYear'">
                 <table class="table table-hover " id="dataTable">
-                    <caption>{{x.year}}</caption>
+                    <caption data-toggle="collapse" data-target="#{{requests.year}}">{{requests.year}}</caption>
                     <thead class="thead-default">
                     <th>Dates</th>
                     <th># of Days</th>
@@ -149,27 +197,20 @@
                     <th>Status</th>
                     <th>Comments</th>
                     </thead>
-                    <tbody>
-                        <td>{{x.value.datesThisRequest}}</td>
+                    <tbody ng-repeat="request in requests.items" id="#{{requests.year}}" class="collapse-in">
+                    <tr ng-click="openRequest(request.value.requestID)">
+                        <td align="left" class="col-md-1">{{request.date}}</td>
+                        <td class="col-md-1">{{request.value.numberOfDays}}</td>
+                        <td class="col-md-1">{{request.value.hoursThisRequest}}</td>
+                        <td class="col-md-1">{{request.value.date}}</td>
+                        <td class="col-md-1">{{request.value.status}}</td>
+                        <td class="col-md-3">{{request.value.minRequestComments}}</td>
+                    </tr>
                     </tbody>
                 </table>
-            </section>
+            </div>
         </div>
     </div>
-<!--
-    <section
-            ng-repeat="(key, value) in myVacationRequestsByYear | groupBy: 'year'  ">
-        <table class="table table-hover " id="dataTable">
-            <thead class="thead-default">
-            <td>{{key}}</td>
-            </thead>
-            <tbody>
-            <tr ng-repeat="x in value">
-                <td>{{x.date}}</td>
-            </tr>
-            </tbody>
-        </table>
-    </section>
 
     -->
 </div>
