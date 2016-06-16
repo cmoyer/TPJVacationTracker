@@ -537,6 +537,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         }
     }
 
+
     function getHoursForEachYear(requestedDates, status){
         var thisYearsHours = 0;
         var nextYearsHours = 0;
@@ -603,12 +604,12 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
             case "Approved":
                 if (thisYearsHours != 0){
-                    updateVacationProfile(thisYear, -thisYearsHours, thisYearsHours, thisYearsHours);
+                    updateVacationProfile(thisYear, -thisYearsHours, thisYearsHours, 0);
                     $timeout(gotoMyApprovals(), 2000);
                 }
 
                 if (nextYearsHours != 0){
-                    updateVacationProfile(nextYear, -thisYearsHours, nextYearsHours, nextYearsHours);
+                    updateVacationProfile(nextYear, -thisYearsHours, nextYearsHours, 0);
                     $timeout(gotoMyApprovals(), 2000);
                 }
                 break;
@@ -686,7 +687,8 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         var needToCreateNextYear = true;
         if (nextYearsHours > 0){
             for (var j=0; j < $rootScope.vacationProfile.length; j++){
-                if($rootScope.vacationProfile[j].Year == nextYear.toString){
+                var strNextYear  = nextYear.toString();
+                if($rootScope.vacationProfile[j].Year == strNextYear){
                     needToCreateNextYear = false;
                 }
             }
@@ -720,7 +722,8 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
 
 
-        if (thisYearsHours > thisYearRemaining){
+
+        if (thisYearsHours > thisYearRemaining & thisYearsHours > 0){
             overage = true;
             $rootScope.vacationRequest.hoursOver = thisYearRemaining - thisYearsHours;
         } else if (nextYearsHours > nextYearRemaining){
@@ -802,6 +805,13 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         $http.patch(dataPUT + $rootScope.vacationRequest.unid + "?form=Vacation%20Request", data).then(function (response) {
             // console.log(response);
         });
+
+        if(Math.abs($rootScope.vacationRequest.hoursOver) > 0){
+            sendMemo("Overage", $rootScope.vacationRequest.empNotesName, $rootScope.vacationRequest.requestID, "", Math.abs($rootScope.vacationRequest.hoursOver));
+        } else {
+            sendMemo("Submitted", $rootScope.vacationRequest.empNotesName, $rootScope.vacationRequest.requestID, "", 0);
+        }
+
 
         // createVacationDayDocuments();
         createVacationDayDocuments($rootScope.empNotesName, "Submitted")
@@ -912,6 +922,8 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         $http.patch(dataPUT + $rootScope.vacationRequest.unid + "?form=Vacation%20Request", data).then(function (response) {
             //TODO: Add this event to the user's calendar
         });
+
+        sendMemo("Approved", $rootScope.vacationRequest.empNotesName, $rootScope.vacationRequest.requestID, "", 0);
 
         createVacationDayDocuments(currEmpNotesName, "Approved")
             .then(function(){
@@ -1066,6 +1078,14 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
             $http.patch(dataPUT + $rootScope.vacationRequest.unid + "?form=Vacation%20Request", data).then(function (response) {
                 if (type == "cancel"){
 
+                    if($rootScope.empNotesName == $rootScope.vacationRequest.empNotesName){
+                        sendMemo("Cancelled", $rootScope.vacationRequest.empNotesName, $rootScope.vacationRequest.requestID, combinedComments, 0);
+                    } else {
+                        sendMemo("Approver Cancelled", $rootScope.vacationRequest.empNotesName, $rootScope.vacationRequest.requestID, combinedComments, 0);
+                    }
+
+
+
                     createVacationDayDocuments($rootScope.vacationRequest.empNotesName, "Cancelled")
                         .then(function(){
                             // THIS NEEDS TO BE HERE TO GET THE UNID OF THE LOTUS DOCUMENT BECAUSE WE ARE NO LONGER CLOSING THE FORM.
@@ -1084,7 +1104,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
                             }, 200);
                         });
                 } else {
-
+                    sendMemo("Rejected", $rootScope.vacationRequest.empNotesName, $rootScope.vacationRequest.requestID, combinedComments, 0);
                     createVacationDayDocuments($rootScope.vacationRequest.empNotesName, "Rejected")
                         .then(function(){
                             // THIS NEEDS TO BE HERE TO GET THE UNID OF THE LOTUS DOCUMENT BECAUSE WE ARE NO LONGER CLOSING THE FORM.
@@ -1291,6 +1311,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         });
     }
 
+
     function updateVacationProfile(year, hoursSubmitted, hoursApproved, hoursCancelledOrRejected){
 
         var unidForYear;
@@ -1309,10 +1330,16 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
             }
         }
 
+
         // calculate the changes
         var newSubmitted = currRequested + hoursSubmitted;
         var newApproved = currApproved + hoursApproved;
-        var newRemaining = currRemaining - newSubmitted - newApproved - currTaken + hoursCancelledOrRejected;
+        if (hoursSubmitted != 0 ){
+            var newRemaining = currRemaining - hoursSubmitted  - currTaken + hoursCancelledOrRejected;
+        }else if (hoursApproved != 0){
+            var newRemaining = currRemaining  - hoursApproved - currTaken + hoursCancelledOrRejected;
+        }
+
 
         // now update the values and patch the document
         var data = {
@@ -1789,14 +1816,17 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
     }
 
 
-    function sendMemo(status, memoTo, url, comments){
+    function sendMemo(status, memoTo, url, comments, hoursOver){
 
+        if (hoursOver == null){
+            hoursOver = 0;
+        }
 
         var data = {
             'status': status,
             'url': url,
             'comments': comments,
-            'hoursOver': $rootScope.vacationRequest.hoursOver,
+            'hoursOver': hoursOver,
             'memoTo': memoTo
         };
 
