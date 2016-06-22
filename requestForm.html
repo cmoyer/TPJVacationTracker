@@ -44,6 +44,9 @@
     <script src="js/mainController.js"></script>
     <script src="js/support.js"></script>
     <script src="js/ngGroup.js"></script>
+    <script src="js/ui-bootstrap-tpls-1.3.3.min.js"></script>
+    <script src="js/angular-confirm.js"></script>
+
 
 
     <!--Our Stylesheets-->
@@ -51,6 +54,8 @@
     <link href="css/select.css" rel="stylesheet">
     <link href="css/glyphicons-bootstrap.css" rel="stylesheet">
     <link href="css/glyphicons.css" rel="stylesheet">
+
+
 
 
 
@@ -134,7 +139,7 @@
                 <div class="row" id="testLegend">
                 <div class='my-legend'>
                     <div class='legend-scale'>
-                        <ul class='legend-labels'>
+                        <ul class='legend-labels' id="ulLegend">
                             <li><span class="todayLegend"></span>Today</li>
                             <li><span class="weekendLegend"></span>Weekend</li>
                             <li><span class="selectedLegend"></span>Selected</li>
@@ -147,7 +152,8 @@
 
         <!--The Full/half day selections-->
         <div class="container col-md-5">
-            <h4>Dates Selected</h4>
+            <h4 ng-show="isSaved()">Dates Selected by {{vacationRequest.empName}}</h4>
+            <h4 ng-show="!isSaved()">Dates Selected by {{empName}}</h4>
             <div class="row">
                 <form id="mainform" method="get" name="mainform">
                     <!--<table id="myForm" class="table table-striped table-condensed"></table>-->
@@ -156,8 +162,8 @@
                             <td>{{day.name}}</td>
                             <td>
                                 <label><input type="radio" name="{{day.name}}" ng-model ="day.value"
-                                              value="Full Day" ng-change ="recalculateHours()" checked = "checked"
-                                              ng-disabled="!isNew()"> Full Day
+                                              value="Full-Day" ng-change ="recalculateHours()" checked = "checked"
+                                              ng-disabled="!isNew()"> <nobr>Full-Day</nobr>
                                 </label>
                             </td>
                             <td>
@@ -168,8 +174,9 @@
                                 <label><input type="radio" name="{{day.name}}" ng-model = "day.value" value="Afternoon"
                                               ng-change ="recalculateHours()" ng-disabled="!isNew()"> Afternoon</label>
                             </td>
-                            <td>
-                                <a href="#" ng-click="clearDateFromRequest($index)">
+                            <td class="removeBtn">
+                                <a href="#" ng-click="clearDateFromRequest($index)"
+                                   confirm="Are you sure you want to delete this vacation day? This cannot be undone." class="removeBtn">
                                     <span class="black glyphicons glyphicons-bin"></span>
                                 </a>
                             </td>
@@ -184,9 +191,9 @@
                                     <span class="black glyphicons glyphicons-bin"></span>
                                 </a>
                             </td>
-                            <td>
+                            <td class="removeBtn">
                                 <a href="#" id="removeBtn"
-                                   ng-click="adminClearDateFromRequest($index)"
+                                   ng-click="adminClearDateFromRequest($index)"  confirm="Are you sure you want to delete this vacation day? This cannot be undone."
                                     ng-show="isTaken()"><span class="glyphicons glyphicons-remove"></span>
                                 </a>
                             </td>
@@ -247,7 +254,8 @@
     <div class="row">
         <div class="col-md-12">
 
-            <h3>Vacation Profiles</h3>
+            <h3 ng-show="isSaved()">Vacation Profiles for {{vacationRequest.empName}}</h3>
+            <h3 ng-show="!isSaved()">Vacation Profiles for {{empName}}</h3>
             <table class="table table-hover" id="dataTable">
                 <thead class="thead-default">
                 <tr>
@@ -353,6 +361,28 @@
                         <input type="button" value="OK" ng-click="addComments()" ng-show="hasComments()"
                                class="btn btn-default" />
                     <input type="button" value="Cancel" ng-click="cancelComments()" class="btn btn-default" />
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Delete Request modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <form name="commentsForm">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" ng-show="false"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel4">{{modal.title}}</h4>
+                </div>
+                <div class="modal-body">
+                    {{modal.body}}
+                </div>
+                <div class="modal-footer">
+                    <input type="button" value="OK" ng-click="deleteVacationRequest()"
+                           class="btn btn-default" />
+                    <input type="button" value="Cancel" ng-click="cancelDelete()" class="btn btn-default" />
                 </div>
             </div>
         </div>

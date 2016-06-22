@@ -273,6 +273,12 @@ select[disabled] {
     font-size: 14px;
 }
 
+.removeBtn{
+
+
+}
+
+
 #navLinksContainer{
     padding-right: 20px;
     padding-left: 20px;
@@ -328,6 +334,8 @@ select[disabled] {
     vertical-align: middle;
 }
 
+
+
 #commentsTable{
     vertical-align: bottom;
     width: 100%
@@ -360,6 +368,17 @@ select[disabled] {
     border-radius: 35px;
 }
 
+#testLegend{
+    width: 100%;
+    margin: 0;
+}
+
+#ulLegend{
+    width: 63%;
+    /*margin: 0 auto;*/
+    margin-right: -30px;
+    margin-left: -30px;
+}
 
 .my-legend .legend-scale ul {
     margin: 0;
@@ -923,6 +942,10 @@ li.status {
     }
 
     #editCalendar {
+        max-width: 600px;
+    }
+
+    #testLegend {
         max-width: 600px;
     }
 
