@@ -92,6 +92,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
     $scope.saveVacationRequest = saveVacationRequest;
     $scope.submitVacationRequest = submitVacationRequest;
     $scope.saveAndSubmit = saveAndSubmit;
+    $scope.saveSubmitted = saveSubmitted;
     $scope.isReadyToSubmit = isReadyToSubmit;
     $scope.approveVacationRequest = approveVacationRequest;
     $scope.rejectVacationRequest = rejectVacationRequest;
@@ -185,6 +186,8 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
         console.log($rootScope);
         console.log($scope);
+
+
 
     }
 
@@ -437,6 +440,21 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         return "OK"
     }
 
+    //TODO: GetApproverList
+    function getApproverList(){
+        var strApprovers = "";
+        
+        if ($rootScope.vacationRequest.approvers instanceof Array) {
+            for(var i = 0; i < $rootScope.vacationRequest.approvers.length; i++){
+                strApprovers += $rootScope.vacationRequest.approvers[i] + ", ";
+            }
+        } else {
+            strApprovers = $rootScope.vacationRequest.approvers;
+        }
+
+        return strApprovers;
+    }
+
     
     function saveVacationRequest(){
 
@@ -615,118 +633,117 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
                     $scope.modal.body = "This request exceeds your system calculated allotment.\n\nYour approver has" +
                         " been notified of this overage.";
                     $scope.modal.buttons = [];
-                    // var button1 = {};
-                    // button1.label = "OK";
-                    // button1.callback = "";
-                    // $scope.modal.buttons.push(button1);
-                    $('#myModal').modal('show');
-
-                } //else {
-                $timeout( function(){
+                    var button1 = {};
+                    button1.label = "OK";
+                    button1.callback = "";
+                    $scope.modal.buttons.push(button1);
+                    $('#saveAndSubmitOverageModal').modal('show');
 
 
+                } else {
 
+                    saveSubmitted();
+                }
 
-                    $rootScope.vacationRequest.date = currentDate();
-
-                    $rootScope.vacationRequest.status = "Submitted";
-
-
-                    if($rootScope.vacationRequest.empName == null){
-                        $rootScope.vacationRequest.empName = $rootScope.empName;
-                    }
-
-                    if($rootScope.vacationRequest.empNotesName == null){
-                        $rootScope.vacationRequest.empNotesName = $rootScope.empNotesName;
-                    }
-
-                    // alert($rootScope.groupName);
-                    if($rootScope.vacationRequest.groupName == null){
-                        $rootScope.vacationRequest.groupName = $rootScope.groupName;
-                    }
-
-                    // set the request ID
-                    if ($rootScope.vacationRequest.requestID == null) {
-                        $rootScope.vacationRequest.requestID =  uuid2.newguid();
-                    }
-
-
-                    var numberOfDays = $rootScope.vacationRequest.requestedDates.length;
-
-                    var datesThisRequest = [];
-                    var datesStr = "";
-
-                    for(var i=0; i < $rootScope.vacationRequest.requestedDates.length; i++){
-                        var tmpDate= new Date(convertStrToDate($rootScope.vacationRequest.requestedDates[i].name));
-                        datesThisRequest.push(tmpDate.format("mm/dd/yyyy"));
-
-                        if(datesStr == ""){
-                            datesStr = tmpDate.format("mm/dd/yyyy").toString();
-                        } else {
-                            datesStr = datesStr.concat(', ' + tmpDate.format("mm/dd/yyyy").toString())
-                        }
-
-                    }
-
-                    var data = {
-                        'empName': $rootScope.vacationRequest.empName,
-                        'date': $rootScope.vacationRequest.date,
-                        'startDate': $rootScope.vacationRequest.startDate.format("mm/dd/yyyy"),
-                        'endDate': $rootScope.vacationRequest.endDate.format("mm/dd/yyyy"),
-                        'STATUS': $rootScope.vacationRequest.status,
-                        'EMPNOTESNAME': $rootScope.vacationRequest.empNotesName,
-                        'hoursThisRequest': $rootScope.vacationRequest.hoursThisRequest,
-                        'Approvers': $rootScope.vacationRequest.approvers,
-                        'groupName': $rootScope.vacationRequest.groupName,
-                        'requestComments': $rootScope.vacationRequest.requestComments,
-                        'requestID': $rootScope.vacationRequest.requestID,
-                        'numberOfDays': numberOfDays,
-                        'datesThisRequest': datesStr,
-                        'arrDatesThisRequest':datesThisRequest
-                    };
-
-
-                    //Build the list of approvers
-                    var strApprovers = "";
-                    for(var i = 0; i < $rootScope.vacationRequest.approvers.length; i++){
-                        strApprovers += $rootScope.vacationRequest.approvers[i] + ", ";
-                    }
-
-                    if(Math.abs($rootScope.vacationRequest.hoursOver) > 0){
-                        sendMemo("Overage", strApprovers, $rootScope.vacationRequest.requestID, "", Math.abs($rootScope.vacationRequest.hoursOver), $rootScope.vacationRequest.empName);
-                    } else {
-                        sendMemo("Submitted", strApprovers, $rootScope.vacationRequest.requestID, "", 0, $rootScope.vacationRequest.empName);
-                    }
-
-
-                    // console.log(data);
-                    if($rootScope.vacationRequest.unid == null) {
-                        $http.post(dataPOST + "?form=Vacation%20Request", data).then(function (response) {
-                            // console.log(response)
-                        });
-                    } else {
-
-                        $http.patch(dataPUT + $rootScope.vacationRequest.unid + "?form=Vacation%20Request", data).then(function (response){
-                            // console.log(response)
-                        });
-                    }
-
-                    createVacationDayDocuments($rootScope.vacationRequest.empNotesName, "Submitted")
-                        .then(function(){
-                            $timeout( function(){
-                                getHoursForEachYear($rootScope.vacationRequest.requestedDates, "Submitted");
-
-                            }, 200);
-                        })
-                        .error(function(){
-                            $timeout( function(){
-                                getHoursForEachYear($rootScope.vacationRequest.requestedDates, "Submitted");
-                            }, 200);
-                        });
-                //}
-                }, 3000);
             }
         }
+    }
+
+    function saveSubmitted(){
+        $rootScope.vacationRequest.date = currentDate();
+
+        $rootScope.vacationRequest.status = "Submitted";
+
+
+        if($rootScope.vacationRequest.empName == null){
+            $rootScope.vacationRequest.empName = $rootScope.empName;
+        }
+
+        if($rootScope.vacationRequest.empNotesName == null){
+            $rootScope.vacationRequest.empNotesName = $rootScope.empNotesName;
+        }
+
+        // alert($rootScope.groupName);
+        if($rootScope.vacationRequest.groupName == null){
+            $rootScope.vacationRequest.groupName = $rootScope.groupName;
+        }
+
+        // set the request ID
+        if ($rootScope.vacationRequest.requestID == null) {
+            $rootScope.vacationRequest.requestID =  uuid2.newguid();
+        }
+
+
+        var numberOfDays = $rootScope.vacationRequest.requestedDates.length;
+
+        var datesThisRequest = [];
+        var datesStr = "";
+
+        for(var i=0; i < $rootScope.vacationRequest.requestedDates.length; i++){
+            var tmpDate= new Date(convertStrToDate($rootScope.vacationRequest.requestedDates[i].name));
+            datesThisRequest.push(tmpDate.format("mm/dd/yyyy"));
+
+            if(datesStr == ""){
+                datesStr = tmpDate.format("mm/dd/yyyy").toString();
+            } else {
+                datesStr = datesStr.concat(', ' + tmpDate.format("mm/dd/yyyy").toString())
+            }
+
+        }
+
+        var data = {
+            'empName': $rootScope.vacationRequest.empName,
+            'date': $rootScope.vacationRequest.date,
+            'startDate': $rootScope.vacationRequest.startDate.format("mm/dd/yyyy"),
+            'endDate': $rootScope.vacationRequest.endDate.format("mm/dd/yyyy"),
+            'STATUS': $rootScope.vacationRequest.status,
+            'EMPNOTESNAME': $rootScope.vacationRequest.empNotesName,
+            'hoursThisRequest': $rootScope.vacationRequest.hoursThisRequest,
+            'Approvers': $rootScope.vacationRequest.approvers,
+            'groupName': $rootScope.vacationRequest.groupName,
+            'requestComments': $rootScope.vacationRequest.requestComments,
+            'requestID': $rootScope.vacationRequest.requestID,
+            'numberOfDays': numberOfDays,
+            'datesThisRequest': datesStr,
+            'arrDatesThisRequest':datesThisRequest
+        };
+
+
+        //Build the list of approvers
+        var strApprovers = getApproverList();
+
+
+        if(Math.abs($rootScope.vacationRequest.hoursOver) > 0){
+            sendMemo("Overage", strApprovers, $rootScope.vacationRequest.requestID, "", Math.abs($rootScope.vacationRequest.hoursOver), $rootScope.vacationRequest.empName);
+        } else {
+            sendMemo("Submitted", strApprovers, $rootScope.vacationRequest.requestID, "", 0, $rootScope.vacationRequest.empName);
+        }
+
+
+        // console.log(data);
+        if($rootScope.vacationRequest.unid == null) {
+            $http.post(dataPOST + "?form=Vacation%20Request", data).then(function (response) {
+                // console.log(response)
+            });
+        } else {
+
+            $http.patch(dataPUT + $rootScope.vacationRequest.unid + "?form=Vacation%20Request", data).then(function (response){
+                // console.log(response)
+            });
+        }
+
+        createVacationDayDocuments($rootScope.vacationRequest.empNotesName, "Submitted")
+            .then(function(){
+                $timeout( function(){
+                    getHoursForEachYear($rootScope.vacationRequest.requestedDates, "Submitted");
+
+                }, 200);
+            })
+            .error(function(){
+                $timeout( function(){
+                    getHoursForEachYear($rootScope.vacationRequest.requestedDates, "Submitted");
+                }, 200);
+            });
     }
 
     function createVacationProfile(year, empNotesName, nextYearsHours){
@@ -1044,10 +1061,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         });
 
         //Build the list of approvers
-        var strApprovers = "";
-        for(var i = 0; i < $rootScope.vacationRequest.approvers.length; i++){
-            strApprovers += $rootScope.vacationRequest.approvers[i] + ", ";
-        }
+        var strApprovers = getApproverList();
 
         if(Math.abs($rootScope.vacationRequest.hoursOver) > 0){
             sendMemo("Overage", strApprovers, $rootScope.vacationRequest.requestID, "", Math.abs($rootScope.vacationRequest.hoursOver), $rootScope.vacationRequest.empName);
@@ -1166,10 +1180,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
             //TODO: Add this event to the user's calendar
         });
 
-        var strApprovers = "";
-        for(var i = 0; i < $rootScope.vacationRequest.approvers.length; i++){
-            strApprovers += $rootScope.vacationRequest.approvers[i] + ", ";
-        }
+        var strApprovers = getApproverList();
 
         sendMemo("Approved", $rootScope.vacationRequest.empNotesName, $rootScope.vacationRequest.requestID, "", 0, strApprovers);
 
@@ -1339,10 +1350,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
                 if (type == "cancel"){
 
                     //Build the list of approvers
-                    var strApprovers = "";
-                    for(var i = 0; i < $rootScope.vacationRequest.approvers.length; i++){
-                        strApprovers += $rootScope.vacationRequest.approvers[i] + ", ";
-                    }
+                    var strApprovers = getApproverList();
 
                     if($rootScope.empNotesName == $rootScope.vacationRequest.empNotesName){
                         sendMemo("Cancelled", strApprovers, $rootScope.vacationRequest.requestID, combinedComments, 0, $rootScope.vacationRequest.empName);
@@ -1603,9 +1611,9 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         var newSubmitted = currRequested + hoursSubmitted;
         var newApproved = currApproved + hoursApproved;
         if (hoursSubmitted != 0 ){
-            var newRemaining = currRemaining - hoursSubmitted  - currTaken + hoursCancelledOrRejected;
+            var newRemaining = currRemaining - newSubmitted  - currApproved - currTaken + hoursCancelledOrRejected;
         }else if (hoursApproved != 0){
-            var newRemaining = currRemaining  - hoursApproved - currTaken + hoursCancelledOrRejected;
+            var newRemaining = currRemaining  - currRequested - newApproved - currTaken + hoursCancelledOrRejected;
         }
 
 
@@ -2050,6 +2058,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
             $rootScope.vacationRequest.requestedDates.splice(selectedDate, 1);
 
 
+
             //we do a second check here because we don't want to save the document until we have spliced the array.
             //but we also don't want to delete the day documents after we splice because it will throw an error
 
@@ -2070,18 +2079,15 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
                         };
 
 
-                        var strApprovers = "";
-                        for(var j = 0; j < $rootScope.vacationRequest.approvers.length; j++){
-                            strApprovers += $rootScope.vacationRequest.approvers[j] + ", ";
-                        }
+                        var strApprovers = getApproverList();
 
 
-                        sendMemo("Approved Changed", strApprovers, $rootScope.vacationRequest.requestID, "", $rootScope.vacationRequest.requestedDates[selectedDate].name, $rootScope.vacationRequest.empName);
+                        sendMemo("Approved Changed", strApprovers, $rootScope.vacationRequest.requestID, "", selectedDateName, $rootScope.vacationRequest.empName);
                     }
 
 
                     $http.patch(dataPUT + tmpUNID + "?form=Vacation%20Profile", data).then(function (response) {
-                        console.log(response);
+
                     });
 
                 }
