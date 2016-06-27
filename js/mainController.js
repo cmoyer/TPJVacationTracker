@@ -440,7 +440,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
         return "OK"
     }
 
-    //TODO: GetApproverList
+
     function getApproverList(){
         var strApprovers = "";
         
@@ -573,10 +573,8 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
     }
 
-    //todo: save&submit
+
     function saveAndSubmit(){
-
-
 
 
         //$rootScope.vacationRequest.requestComments = "";
@@ -760,8 +758,6 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
             // console.log(response)
         });
 
-
-
     }
 
     function hideTotalHours(hours){
@@ -852,7 +848,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
                 }
 
                 if (nextYearsHours != 0){
-                    updateVacationProfile(nextYear, -thisYearsHours, nextYearsHours, 0);
+                    updateVacationProfile(nextYear, -nextYearsHours, nextYearsHours, 0);
                     $timeout(gotoMyApprovals(), 2000);
                 }
                 break;
@@ -1262,8 +1258,6 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
 
     function deleteVacationRequest(){
 
-      
-
         deleteVacationDays()
             .then(function(){
                 //Delete the vacation request document
@@ -1606,14 +1600,14 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
             }
         }
 
-
+        //todo:working zone
         // calculate the changes
         var newSubmitted = currRequested + hoursSubmitted;
         var newApproved = currApproved + hoursApproved;
         if (hoursSubmitted != 0 ){
-            var newRemaining = currRemaining - newSubmitted  - currApproved - currTaken + hoursCancelledOrRejected;
+            var newRemaining = currRemaining - newSubmitted + hoursCancelledOrRejected;
         }else if (hoursApproved != 0){
-            var newRemaining = currRemaining  - currRequested - newApproved - currTaken + hoursCancelledOrRejected;
+            var newRemaining = currRemaining - newApproved + hoursCancelledOrRejected;
         }
 
 
@@ -2341,7 +2335,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
             header:{
                 left: 'prev,next today',
                 center: 'title',
-                right: 'month'
+                right: ''
             },
             //eventClick: $scope.alertOnEventClick,
             eventDrop: $scope.alertOnDrop,
@@ -2358,7 +2352,7 @@ function MainCtrl($rootScope, $scope, $location, $http, $compile, $q, $timeout, 
             header:{
                 left: 'prev,next today',
                 center: 'title',
-                right: 'month'
+                right: ''
             },
             //eventClick: $scope.alertOnEventClick,
             eventDrop: $scope.alertOnDrop,

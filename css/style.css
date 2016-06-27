@@ -374,10 +374,11 @@ select[disabled] {
 }
 
 #ulLegend{
-    width: 63%;
-    /*margin: 0 auto;*/
-    margin-right: -30px;
-    margin-left: -30px;
+    /*width: 63%;*/
+    /*!*margin: 0 auto;*!*/
+    /*margin-right: -30px;*/
+    /*margin-left: -30px;*/
+    float:right;
 }
 
 .my-legend .legend-scale ul {
@@ -584,7 +585,7 @@ nav.navbar-default {
 }
 
 #actionLinksContainer .navbar-header{
-    max-width: 250px;
+    max-width: 260px;
 }
 
 .pageTitle p {
